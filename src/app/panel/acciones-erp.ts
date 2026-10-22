@@ -263,3 +263,39 @@ export async function moverInventario(fd: FormData) {
   }
   volver(fd, "/panel/inventario", { ok: motivo === "compra" ? "Compra registrada." : motivo === "uso" ? "Salida registrada." : "Stock ajustado." });
 }
+
+// ---------------------------------------------------------------- Cámaras y equipos
+
+const ESTADOS_EQUIPO = ["disponible", "en_uso", "mantenimiento", "baja"];
+
+function datosEquipo(fd: FormData, elegida: string) {
+  return {
+    nombre: txt(fd, "nombre"),
+    tipo: txt(fd, "tipo") || "otro",
+    marca_modelo: opc(fd, "marca_modelo"),
+    serie: opc(fd, "serie"),
+    sede: sedeDe(fd, elegida),
+    asignado_a: opc(fd, "asignado_a"),
+    proximo_mantenimiento: opc(fd, "proximo_mantenimiento"),
+    notas: opc(fd, "notas"),
+  };
+}
+
+export async function guardarEquipo(fd: FormData) {
+  const { supabase, perfil } = await requirePerfil();
+  const id = opc(fd, "id");
+  const datos = datosEquipo(fd, perfil.preferencias.sede);
+  if (!datos.nombre) volver(fd, "/panel/equipos", { error: "Escribe el nombre del equipo." });
+  const { error } = id ? await supabase.from("equipos").update(datos).eq("id", id) : await supabase.from("equipos").insert(datos);
+  volver(fd, "/panel/equipos", error ? { error: "No se pudo guardar el equipo." } : { ok: id ? "Equipo actualizado." : "Equipo agregado." });
+}
+
+export async function estadoEquipo(fd: FormData) {
+  const { supabase } = await requirePerfil();
+  const estado = txt(fd, "estado");
+  if (!ESTADOS_EQUIPO.includes(estado)) volver(fd, "/panel/equipos", { error: "Estado no válido." });
+  const cambios: Record<string, string | null> = { estado };
+  if (estado === "disponible") cambios.asignado_a = null;
+  const { error } = await supabase.from("equipos").update(cambios).eq("id", txt(fd, "id"));
+  volver(fd, "/panel/equipos", error ? { error: "No se pudo cambiar el estado." } : { ok: "Estado actualizado." });
+}

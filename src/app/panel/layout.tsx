@@ -40,7 +40,10 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     ventas.push({ href: "/panel/caja", texto: "Caja", icono: "caja" });
   }
   if (puede(perfil, "catalogo")) ventas.push({ href: "/panel/catalogo", texto: "Catálogo", icono: "catalogo" });
-  const operacion: ItemNav[] = [{ href: "/panel/inventario", texto: "Inventario", icono: "inventario" }];
+  const operacion: ItemNav[] = [
+    { href: "/panel/inventario", texto: "Inventario", icono: "inventario" },
+    { href: "/panel/equipos", texto: "Cámaras y equipos", icono: "equipos" },
+  ];
   if (puede(perfil, "reportes")) operacion.push({ href: "/panel/reportes", texto: "Reportes", icono: "reportes" });
   const cuenta: ItemNav[] = [
     { href: "/panel/ajustes", texto: "Ajustes", icono: "ajustes" },

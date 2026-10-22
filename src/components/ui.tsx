@@ -1,13 +1,13 @@
 import Link from "next/link";
 import {
-  Boxes, CalendarDays, ChartColumn, ChevronRight, Factory, Handshake, Images, LayoutDashboard, Package, School, Search, Settings, Sheet, Sun, Vault, Wallet, type LucideIcon,
+  Boxes, CalendarDays, Camera, ChartColumn, ChevronRight, Factory, Handshake, Images, LayoutDashboard, Package, School, Search, Settings, Sheet, Sun, Vault, Wallet, type LucideIcon,
 } from "lucide-react";
 
 // Cada sección tiene su ícono y su color, para ubicarse de un vistazo.
 export const MODULOS: Record<string, LucideIcon> = {
   inicio: LayoutDashboard, clientes: Handshake, colegios: School, produccion: Factory, cobros: Wallet, caja: Vault,
   catalogo: Package, inventario: Boxes, reportes: ChartColumn, ajustes: Settings, buscar: Search, tabla: Sheet, fotos: Images,
-  calendario: CalendarDays, hoy: Sun,
+  calendario: CalendarDays, hoy: Sun, equipos: Camera,
 };
 
 export function PageHeader({

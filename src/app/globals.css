@@ -1159,3 +1159,14 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 .g-columnas.ralas .g-etq, .g-columnas.ralas .g-etq::after { font-size: 11px !important; }
 .g-columnas.ralas .g-etq::after { content: none !important; }
 @media (max-width: 640px) { .tcard-ico { display: none; } }
+[data-modulo="equipos"] { --m: #6d5bd0; }
+.con-ico { display: flex; align-items: center; gap: 8px; }
+.con-ico .i { color: var(--brand); }
+.txt-bad { color: var(--bad); font-weight: 600; }
+.txt-warn { color: var(--warn); font-weight: 600; }
+.item .meta .i { width: 13px; height: 13px; vertical-align: -2px; }
+.item.equipo .title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.item.apagado { opacity: .55; }
+.equipo-acciones { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.equipo-acciones .btn { height: 30px; padding: 0 10px; font-size: 13px; }
+@media (max-width: 640px) { .item.equipo { flex-direction: column; align-items: stretch; gap: 10px; } .equipo-acciones { justify-content: flex-start; } }

@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Boxes, CalendarDays, ChartColumn, Factory, Handshake, Images, LayoutDashboard, LayoutGrid, Package, School, Settings, Sheet, Sun, Vault, Wallet } from "lucide-react";
+import { Boxes, CalendarDays, Camera, ChartColumn, Factory, Handshake, Images, LayoutDashboard, LayoutGrid, Package, School, Settings, Sheet, Sun, Vault, Wallet } from "lucide-react";
 
 const ICONOS = {
   inicio: LayoutDashboard, clientes: Handshake, colegios: School, produccion: Factory, cobros: Wallet, caja: Vault,
   catalogo: Package, inventario: Boxes, reportes: ChartColumn, ajustes: Settings, mas: LayoutGrid, tabla: Sheet, fotos: Images,
-  calendario: CalendarDays, hoy: Sun,
+  calendario: CalendarDays, hoy: Sun, equipos: Camera,
 };
 
 export type ItemNav = { href: string; texto: string; icono: keyof typeof ICONOS; count?: number; movil?: boolean };
