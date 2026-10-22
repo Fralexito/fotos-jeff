@@ -47,7 +47,7 @@ def proveedor_para(base, pid: str | None = None) -> Proveedor:
 
 def pedir(base, foto_id: int, ids_recetas: list[str], texto_libre: str = "", clave: str = "",
           proveedor: Proveedor | None = None, detector=None, variables: dict | None = None,
-          confirmar_gasto=lambda msg: True, sesion=None) -> dict:
+          confirmar_gasto=lambda msg: True, sesion=None, referencia_id: int | None = None) -> dict:
     f = base.q1("select * from fotos where id = ?", foto_id)
     if not f:
         raise KeyError(f"foto {foto_id} no existe")
@@ -64,13 +64,22 @@ def pedir(base, foto_id: int, ids_recetas: list[str], texto_libre: str = "", cla
 
     ruta_fuente = ruta_fuente_actual(base, f)
     original = ImageOps.exif_transpose(Image.open(ruta_fuente)).convert("RGB")
-    resultado = p.editar(original, pedido, clave, sesion)
+    referencia = None
+    if rc.requiere_referencia(ids_recetas):
+        if detector is None:
+            raise ErrorIA("Para abrir los ojos hace falta la revisión de rasgos (modelo de cara). Revisa Ajustes.")
+        referencia_id = referencia_id or elegir_referencia(base, f, detector)
+        r = base.q1("select ruta_original from fotos where id=?", referencia_id)
+        referencia = ImageOps.exif_transpose(Image.open(os.path.join(base.raiz, r[0]))).convert("RGB")
+    resultado = p.editar(original, pedido, clave, sesion, referencia)
     # la IA devuelve imágenes pequeñas: se lleva al tamaño del original para no perder resolución al
     # encuadrar (la nitidez real la pone la edición local / el ampliador)
     resultado = ajustar_a(resultado, original.size)
 
     if detector is not None:
-        ver = verificar(np.asarray(original), np.asarray(resultado), detector)
+        ver = verificar(np.asarray(original), np.asarray(resultado), detector,
+                        ojos_deben_abrirse=rc.requiere_referencia(ids_recetas),
+                        rgb_referencia=np.asarray(referencia) if referencia is not None else None)
     else:
         ver = Veredicto(False, ["verificación de rasgos no disponible: revísala tú antes de aceptar"])
 
@@ -95,6 +104,29 @@ def pedir(base, foto_id: int, ids_recetas: list[str], texto_libre: str = "", cla
     base.anotar("ia", "foto", foto_id, {"version": vid, "recetas": ids_recetas, "rasgos_ok": ver.aprobado})
     log.info("ia foto=%s version=%s rasgos_ok=%s %s", foto_id, vid, ver.aprobado, ver.medidas)
     return {"version_id": vid, "ruta": destino, "veredicto": ver, "pedido": pedido}
+
+
+def elegir_referencia(base, f, detector) -> int:
+    """Otra toma del mismo alumno con los ojos bien abiertos (la más abierta). Nada se inventa: sin otra toma
+    con ojos abiertos, no se abre ningún ojo."""
+    from .verificar import OJO_ABIERTO, apertura_ojos
+    if not f["alumno_id"]:
+        raise ErrorIA("Asigna la foto a su alumno: para abrir los ojos se usa otra toma de la misma persona.")
+    mejor, mejor_ap = None, OJO_ABIERTO
+    for o in base.q("select id, ruta_original from fotos where alumno_id=? and id != ? and estado != 'descartada'",
+                    f["alumno_id"], f["id"]):
+        try:
+            im = ImageOps.exif_transpose(Image.open(os.path.join(base.raiz, o["ruta_original"]))).convert("RGB")
+            im.thumbnail((1600, 1600))
+            pts = detector(np.asarray(im))
+        except OSError:
+            continue
+        if pts is not None and apertura_ojos(pts) > mejor_ap:
+            mejor, mejor_ap = o["id"], apertura_ojos(pts)
+    if mejor is None:
+        raise ErrorIA("No hay otra toma de este alumno con los ojos abiertos. Sin una referencia real no se "
+                      "abren los ojos, para no inventar rasgos.")
+    return mejor
 
 
 def aceptar(base, version_id: int, forzar: bool = False):

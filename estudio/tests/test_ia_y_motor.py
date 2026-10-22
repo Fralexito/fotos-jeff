@@ -45,7 +45,7 @@ def test_sin_recetas_ni_texto_falla():
 def test_combos_validos():
     for ids in rc.COMBOS.values():
         rc.componer(ids)
-    assert "ojos_cerrados" not in rc.POR_ID  # 0 % de cambios en rasgos
+    assert rc.requiere_referencia(["ojos"]) and not rc.requiere_referencia(["color"])
 
 
 # ------------------------------------------------------------------ verificación
@@ -276,3 +276,50 @@ def test_por_imprimir(base, salon, tmp_path):
     base.cambiar_estado([fid], "aprobada")
     r = pr.por_imprimir(base)
     assert r[0]["copias"] == 2 and r[0]["pagadas"] == 2
+
+
+def _cara_ojos(abiertos: bool, **kw):
+    pts = _cara(**kw)
+    alto = 0.08 if abiertos else 0.01
+    c = (pts[33] + pts[133]) / 2
+    pts[159], pts[145] = c + [0, -alto * 100], c + [0, alto * 100]
+    c = (pts[263] + pts[362]) / 2
+    pts[386], pts[374] = c + [0, -alto * 100], c + [0, alto * 100]
+    return pts
+
+
+def test_apertura_de_ojos():
+    assert vf.apertura_ojos(_cara_ojos(True)) > vf.OJO_ABIERTO > vf.apertura_ojos(_cara_ojos(False))
+    rgb = np.full((900, 900, 3), 150, np.uint8)
+    v = vf.verificar(rgb, rgb, lambda im: _cara_ojos(False), ojos_deben_abrirse=True)
+    assert not v.aprobado and "los ojos siguen cerrados" in v.motivos
+
+
+def test_abrir_ojos_sin_otra_toma_no_inventa(base, salon, tmp_path):
+    fid = _foto_importada(base, salon, tmp_path)
+    p = ProveedorFalso("openai", "Falsa", "m")
+    with pytest.raises(pv.ErrorIA, match="No hay otra toma"):
+        sv.pedir(base, fid, ["ojos"], proveedor=p, detector=lambda im: _cara_ojos(False, escala=1) + 100)
+    with pytest.raises(pv.ErrorIA, match="revisión de rasgos"):
+        sv.pedir(base, fid, ["ojos"], proveedor=p, detector=None)
+
+
+def test_abrir_ojos_usa_la_toma_con_ojos_abiertos(base, salon, tmp_path):
+    foto(str(tmp_path / "c" / "IMG_1.JPG"), w=400, h=600, semilla=1)
+    foto(str(tmp_path / "c" / "IMG_2.JPG"), w=400, h=600, fecha="2026:10:01 09:00:03", semilla=2)
+    imp.importar(base, salon, str(tmp_path / "c"))
+    f1, f2 = [f["id"] for f in base.fotos(salon)]
+    a = base.agregar_alumno(salon, "Ríos", "Ana")
+    base.asignar([f1, f2], a)
+    marcas = {}
+    orig1 = np.asarray(Image.open(os.path.join(base.raiz, base.fotos(salon)[0]["ruta_original"])))
+    def detector(im):
+        # la toma 1 tiene ojos cerrados; la 2 y el resultado, abiertos
+        cerrados = im.shape == orig1.shape and abs(float(im.mean()) - float(orig1.mean())) < 0.5
+        return _cara_ojos(not cerrados, escala=1) + 100
+    class P(ProveedorFalso):
+        def editar(self, imagen, pedido, clave, sesion=None, referencia=None):
+            marcas["ref"] = referencia is not None
+            return Image.new("RGB", (400, 600), (10, 10, 10))
+    r = sv.pedir(base, f1, ["ojos"], proveedor=P("openai", "F", "m"), detector=detector)
+    assert marcas["ref"] and r["veredicto"].aprobado, r["veredicto"].motivos

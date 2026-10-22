@@ -84,6 +84,19 @@ def comparar_puntos(orig: np.ndarray, nuevo: np.ndarray) -> Veredicto:
     return Veredicto(not motivos, motivos, med)
 
 
+# párpados: (superior, inferior, comisura externa, comisura interna)
+_OJOS = ((159, 145, 33, 133), (386, 374, 263, 362))
+OJO_ABIERTO = 0.18  # alto/ancho del ojo: < 0.18 es cerrado o entrecerrado
+
+
+def apertura_ojos(pts: np.ndarray) -> float:
+    """Promedio alto/ancho de ambos ojos (0 = cerrados, ~0.3 = bien abiertos)."""
+    r = []
+    for sup, inf, a, b in _OJOS:
+        r.append(np.linalg.norm(pts[sup] - pts[inf]) / max(np.linalg.norm(pts[a] - pts[b]), 1e-6))
+    return float(np.mean(r))
+
+
 def tono_mejillas(rgb: np.ndarray, pts: np.ndarray) -> np.ndarray:
     import cv2
     io = _d(pts, "ojo_d_ext", "ojo_i_ext")
@@ -100,8 +113,10 @@ def tono_mejillas(rgb: np.ndarray, pts: np.ndarray) -> np.ndarray:
     return np.mean(muestras, 0)
 
 
-def verificar(rgb_orig: np.ndarray, rgb_nuevo: np.ndarray, detector) -> Veredicto:
-    """`detector(rgb) -> (478,2) | None`."""
+def verificar(rgb_orig: np.ndarray, rgb_nuevo: np.ndarray, detector, ojos_deben_abrirse: bool = False,
+              rgb_referencia: np.ndarray | None = None) -> Veredicto:
+    """`detector(rgb) -> (478,2) | None`. Con `rgb_referencia` (otra toma de la misma persona) también se
+    exige que la cara nueva coincida con esa toma."""
     po, pn = detector(rgb_orig), detector(rgb_nuevo)
     if po is None:
         return Veredicto(False, ["no se ve bien la cara en el original: revísala tú"])
@@ -113,6 +128,20 @@ def verificar(rgb_orig: np.ndarray, rgb_nuevo: np.ndarray, detector) -> Veredict
     if de > TOL_PIEL_DE:
         v.motivos.append("cambió el tono de la piel")
         v.aprobado = False
+    if ojos_deben_abrirse:
+        ap = apertura_ojos(pn)
+        v.medidas["apertura_ojos"] = round(ap, 3)
+        if ap < OJO_ABIERTO:
+            v.motivos.append("los ojos siguen cerrados")
+            v.aprobado = False
+    if rgb_referencia is not None:
+        pr = detector(rgb_referencia)
+        if pr is not None:
+            vr = comparar_puntos(pr, pn)
+            v.medidas["contra_referencia"] = vr.medidas
+            if not vr.aprobado:
+                v.motivos += [m + " (respecto a la otra toma)" for m in vr.motivos]
+                v.aprobado = False
     return v
 
 

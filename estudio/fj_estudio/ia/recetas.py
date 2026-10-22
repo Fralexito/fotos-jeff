@@ -37,6 +37,7 @@ class Receta:
     orden: int          # en qué turno se aplica al combinar
     texto: str
     toca_cara: bool = False  # si es True, la verificación de rasgos es aún más estricta
+    requiere_referencia: bool = False  # necesita otra toma de la MISMA persona (nada se inventa)
 
 
 RECETAS: list[Receta] = [
@@ -48,6 +49,14 @@ RECETAS: list[Receta] = [
            "La cabeza está inclinada hacia un lado. Gira la cabeza entera, como un bloque rígido, solo lo necesario "
            "para que quede vertical, con un giro natural del cuello. La cara no se deforma: solo cambia su ángulo.",
            toca_cara=True),
+    Receta("ojos", "Abrir ojos (con otra toma)", "Arreglar", 25,
+           "En la primera imagen la persona tiene los ojos cerrados o entrecerrados. La segunda imagen es la MISMA "
+           "persona, en otra toma de la misma sesión, con los ojos abiertos. Abre los ojos de la primera imagen "
+           "copiando exactamente cómo son en la segunda: misma forma y pliegue de párpado, mismo tamaño de ojo, mismo "
+           "color y tamaño de iris, mismas pestañas y cejas, mirando a la cámara. Cambia solo los párpados y lo que "
+           "se ve del ojo; el resto de la cara queda idéntico a la primera imagen. Si no puedes hacerlo idéntico a la "
+           "segunda imagen, deja los ojos como están.",
+           toca_cara=True, requiere_referencia=True),
     Receta("postura", "Corregir postura", "Arreglar", 21,
            "Corrige la postura: espalda recta, hombros relajados y a la misma altura, pecho de frente a la cámara y "
            "cuello natural. Mueve solo la posición del cuerpo, nunca su forma ni su tamaño."),
@@ -135,6 +144,10 @@ def _sin_tildes(t: str) -> str:
 
 def _llenar(texto: str, v: dict) -> str:
     return re.sub(r"\{(\w+)\}", lambda m: str(v.get(m.group(1), m.group(0))), texto)
+
+
+def requiere_referencia(ids: list[str]) -> bool:
+    return any(POR_ID[i].requiere_referencia for i in ids if i in POR_ID)
 
 
 def toca_cara(ids: list[str]) -> bool:
