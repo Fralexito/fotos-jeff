@@ -50,7 +50,7 @@ jobs:
       - name: Probar el programa armado
         shell: pwsh
         run: |
-          $p = Start-Process -FilePath "dist\FOTOS JEFFERSON Estudio\FOTOS JEFFERSON Estudio.exe" `
+          $p = Start-Process -FilePath "dist\Fotos Studio J\Fotos Studio J.exe" `
                -ArgumentList '--autoprueba', "$env:RUNNER_TEMP\autoprueba.json" -PassThru -Wait
           Get-Content "$env:RUNNER_TEMP\autoprueba.json"
           if ($p.ExitCode -ne 0) { throw "La prueba del .exe falló (código $($p.ExitCode))" }
@@ -65,8 +65,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: FOTOS-JEFFERSON-Estudio-Setup
-          path: dist/FOTOS-JEFFERSON-Estudio-Setup-*.exe
+          name: Fotos-Studio-J-Setup
+          path: dist/Fotos-Studio-J-Setup-*.exe
           retention-days: 30
 
       - name: Publicar descarga
@@ -76,7 +76,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "estudio-v$env:VERSION"
-          $exe = (Get-ChildItem dist\FOTOS-JEFFERSON-Estudio-Setup-*.exe).FullName
+          $exe = (Get-ChildItem dist\Fotos-Studio-J-Setup-*.exe).FullName
           gh release create $tag $exe --target $env:GITHUB_SHA --prerelease `
-            --title "FOTOS JEFFERSON Estudio $env:VERSION" `
+            --title "Fotos Studio J $env:VERSION" `
             --notes "Instalador del programa de PC. Descarga el .exe, ábrelo y sigue los pasos."

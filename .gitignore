@@ -44,3 +44,4 @@ estudio/.pytest_cache/
 /build/
 /.venv-compilar/
 estudio/empaque/icono.ico
+estudio/empaque/asistente_*.bmp
