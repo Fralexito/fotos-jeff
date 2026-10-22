@@ -3,7 +3,9 @@ import { Camera, LogOut } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
 import { Avatar } from "@/components/ui";
 import { salir } from "../login/actions";
+import { Suspense } from "react";
 import { Nav, type ItemNav } from "./nav";
+import { Topbar } from "./topbar";
 
 const NOMBRE_ROL = { dueno: "Dueño", operador: "Operador", fotografo: "Fotógrafo" };
 
@@ -20,9 +22,11 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     ventas.push({ href: "/panel/cobros", texto: "Cobros", icono: "cobros", count: count ?? 0 });
   }
   if (puede(perfil, "catalogo")) ventas.push({ href: "/panel/catalogo", texto: "Catálogo", icono: "catalogo" });
+  const cuenta: ItemNav[] = [{ href: "/panel/ajustes", texto: "Ajustes", icono: "ajustes" }];
+  const p = perfil.preferencias;
 
   return (
-    <div className="app">
+    <div className="app" data-color={p.color} data-tema={p.tema} data-letra={p.letra} data-densidad={p.densidad}>
       <aside className="side" aria-label="Secciones">
         <Link href="/panel" className="logo">
           <span className="mark"><Camera /></span>
@@ -35,6 +39,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         <Nav items={gestion} />
         {ventas.length > 0 && <div className="section">Ventas</div>}
         <Nav items={ventas} />
+        <div className="section hide-mobile">Cuenta</div>
+        <Nav items={cuenta} />
         <div className="grow" />
         <div className="usercard">
           <Avatar name={perfil.nombre} />
@@ -50,6 +56,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </div>
       </aside>
       <main>
+        <Suspense>
+          <Topbar cobros={puede(perfil, "cobros")} catalogo={puede(perfil, "catalogo")} />
+        </Suspense>
         <div className="content">{children}</div>
       </main>
     </div>

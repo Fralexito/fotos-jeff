@@ -6,8 +6,8 @@ import { Empty, PageHeader } from "@/components/ui";
 import { S } from "@/lib/formato";
 import { alternarProducto, crearProducto } from "../actions";
 
-export default async function Catalogo({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
-  const aviso = await searchParams;
+export default async function Catalogo({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; nuevo?: string }> }) {
+  const { nuevo, ...aviso } = await searchParams;
   const { supabase } = await requirePerfil(PERMISOS.catalogo);
   const { data: productos } = await supabase.from("productos").select("*").order("activo", { ascending: false }).order("precio");
 
@@ -17,7 +17,7 @@ export default async function Catalogo({ searchParams }: { searchParams: Promise
         title="Catálogo"
         subtitle="Productos y combos a la venta. Lo activo aparece al crear pedidos y en la página web."
         actions={
-          <Modal label="Nuevo producto" title="Nuevo producto o combo" icon={<Plus className="i" />}>
+          <Modal abrir={nuevo === "1"} label="Nuevo producto" title="Nuevo producto o combo" icon={<Plus className="i" />}>
             <form action={crearProducto} className="form">
               <div className="fields">
                 <label className="field">Nombre<input name="nombre" required placeholder="Cuadro 20×30 con marco" /></label>

@@ -6,8 +6,8 @@ import { Modal } from "@/components/modal";
 import { Avatar, Empty, PageHeader } from "@/components/ui";
 import { crearColegio } from "../actions";
 
-export default async function Colegios({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
-  const aviso = await searchParams;
+export default async function Colegios({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; nuevo?: string }> }) {
+  const { nuevo, ...aviso } = await searchParams;
   const { supabase } = await requirePerfil();
   const { data: colegios } = await supabase
     .from("colegios")
@@ -20,7 +20,7 @@ export default async function Colegios({ searchParams }: { searchParams: Promise
         title="Colegios y alumnos"
         subtitle="Cada colegio con sus campañas. La lista de alumnos se sube una vez y cada alumno recibe su código."
         actions={
-          <Modal label="Nuevo colegio" title="Nuevo colegio" icon={<Plus className="i" />}>
+          <Modal abrir={nuevo === "1"} label="Nuevo colegio" title="Nuevo colegio" icon={<Plus className="i" />}>
             <form action={crearColegio} className="form">
               <div className="fields">
                 <label className="field">Nombre<input name="nombre" required placeholder="I.E. San Martín de Porres" /></label>
