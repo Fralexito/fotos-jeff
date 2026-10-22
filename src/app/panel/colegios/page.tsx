@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, School, Sheet } from "lucide-react";
+import { Plus, School, Search, Sheet } from "lucide-react";
 import { requirePerfil } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
@@ -8,6 +8,8 @@ import { alumnosConPedidos } from "@/lib/datos";
 import { NOMBRE_SEDE, SEDES, ZONAS, filtroSede } from "@/lib/sedes";
 import { ArbolColegios, type ColegioArbol } from "./arbol";
 import { crearColegio } from "../actions";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
+import { S } from "@/lib/formato";
 
 export default async function Colegios({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; nuevo?: string }> }) {
   const { nuevo, ...aviso } = await searchParams;
@@ -21,6 +23,31 @@ export default async function Colegios({ searchParams }: { searchParams: Promise
   if (sede) consulta = consulta.eq("sede", sede);
   const [{ data: colegios }, alumnos] = await Promise.all([consulta, alumnosConPedidos(supabase, sede)]);
   const anios = [...new Set((colegios ?? []).flatMap((c) => (c.campanas ?? []).map((k: { anio: number }) => k.anio)))].sort((a, b) => b - a);
+
+  // Vista sencilla: buscar y la lista de colegios, nada más.
+  if (perfil.preferencias.vista === "sencilla") {
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo="Colegios" />
+        <form action="/panel/buscar" className="bigsearch">
+          <Search />
+          <input name="q" placeholder="Buscar alumno o colegio" aria-label="Buscar" />
+        </form>
+        <SimpleLista
+          vacio="Aún no hay colegios. Pídele a tu equipo que los agregue."
+          filas={(colegios ?? []).map((c) => {
+            const suyos = alumnos.filter((a) => a.colegioId === c.id);
+            const debe = suyos.reduce((t, a) => t + a.saldo, 0);
+            return {
+              key: c.id, titulo: c.nombre, href: `/panel/colegios/${c.id}`,
+              sub: `${suyos.length} ${suyos.length === 1 ? "alumno" : "alumnos"} · ${c.ciudad}${debe > 0 ? " · le deben" : ""}`,
+              valor: debe > 0 ? S(debe) : undefined, tono: "debe" as const,
+            };
+          })}
+        />
+      </div>
+    );
+  }
 
   return (
     <>

@@ -9,6 +9,7 @@ import { ESTADO_PEDIDO, S, TIPO_CAMPANA, fecha, whatsapp } from "@/lib/formato";
 import { salon } from "@/lib/datos";
 import { NOMBRE_SEDE } from "@/lib/sedes";
 import { editarAlumno } from "../../actions";
+import { SimpleLista, SimpleNumeros, SimpleTitulo } from "@/components/simple";
 
 type Alumno = {
   id: string; codigo: string; nombres: string; apellidos: string; grado: string | null; seccion: string | null; dni: string | null;
@@ -87,6 +88,40 @@ export default async function FichaAlumno({ params, searchParams }: { params: Pr
   const msg = debe > 0
     ? `Hola${a.apoderado_nombre ? ` ${a.apoderado_nombre.split(" ")[0]}` : ""}, le saluda Fotos Jefferson. Le recordamos que el pedido de ${a.nombres} tiene un saldo de ${S(debe)}. Puede pagar por Yape o Plin. ¡Gracias!`
     : `Hola${a.apoderado_nombre ? ` ${a.apoderado_nombre.split(" ")[0]}` : ""}, le saluda Fotos Jefferson, sobre las fotos de ${a.nombres}.`;
+
+  // Vista sencilla: cuánto debe, cobrar o escribir al apoderado, y sus pedidos.
+  if (perfil.preferencias.vista === "sencilla") {
+    const wa = whatsapp(a.apoderado_telefono, msg);
+    return (
+      <div className="simple">
+        <SimpleTitulo
+          titulo={nombre}
+          volver={k ? { href: `/panel/campanas/${k.id}`, texto: k.colegios?.nombre ?? k.nombre } : { href: "/panel/colegios", texto: "Colegios" }}
+          sub={`${salon(a)}${a.apoderado_nombre ? ` · apoderado: ${a.apoderado_nombre}` : ""}`}
+        />
+        <Aviso {...aviso} />
+        {veDinero && <SimpleNumeros items={[{ texto: debe > 0 ? "Debe" : "Pagó todo", valor: S(debe > 0 ? debe : pagado), tono: debe > 0 ? "debe" : "bien" }]} />}
+        <div className="simple-acciones">
+          {veDinero && debe > 0 && <Link className="btn" href={`/panel/cobros?q=${a.codigo}`}><HandCoins className="i" /> Cobrar</Link>}
+          {wa && <a className="btn wa" href={wa}><Phone className="i" /> Escribir al apoderado</a>}
+        </div>
+        <h2 className="simple-sub">Pedidos</h2>
+        <SimpleLista
+          vacio="Aún no tiene pedidos."
+          filas={vigentes.map((p) => {
+            const sp = saldo.get(p.id);
+            return {
+              key: p.id,
+              titulo: p.pedido_items.map((i) => `${i.cantidad > 1 ? `${i.cantidad} × ` : ""}${i.productos?.nombre ?? ""}`).join(" + ") || `Pedido ${p.numero}`,
+              sub: (ESTADO_PEDIDO[p.estado] ?? [p.estado])[0],
+              valor: veDinero ? (sp && sp.saldo > 0 ? `Debe ${S(sp.saldo)}` : "Pagado") : undefined,
+              tono: sp && sp.saldo > 0 ? ("debe" as const) : ("bien" as const),
+            };
+          })}
+        />
+      </div>
+    );
+  }
 
   return (
     <>
