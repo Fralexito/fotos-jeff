@@ -38,3 +38,9 @@ Thumbs.db
 pipeline/motor.env
 estudio/**/__pycache__/
 estudio/.pytest_cache/
+
+# Compilación local del programa de PC
+/dist/
+/build/
+/.venv-compilar/
+estudio/empaque/icono.ico

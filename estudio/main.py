@@ -18,7 +18,7 @@ if getattr(sys, "frozen", False):
 from fj_estudio import registro  # noqa: E402
 from fj_estudio.db import Base  # noqa: E402
 from fj_estudio.ui.comun import Estado  # noqa: E402
-from fj_estudio.ui.tema import QSS  # noqa: E402
+from fj_estudio.ui.tema import QSS_CLARO, cargar_fuentes  # noqa: E402
 from fj_estudio.ui.trabajos import Colas  # noqa: E402
 from fj_estudio.ui.ventana import Ventana  # noqa: E402
 
@@ -59,11 +59,14 @@ def autoprueba(salida: str) -> int:
     res = {"ok": False, "pasos": []}
     try:
         app = QApplication.instance() or QApplication(sys.argv)
-        app.setStyleSheet(QSS)
+        cargar_fuentes()
+        app.setStyleSheet(QSS_CLARO)
         tmp = tempfile.mkdtemp(prefix="fj_prueba_")
         base = Base(os.path.join(tmp, "biblioteca"), usuario="prueba")
         v = Ventana(Estado(base, Colas(), QSettings(os.path.join(tmp, "a.ini"), QSettings.IniFormat)))
         v.show()
+        app.processEvents()
+        v.avanzada(1)
         app.processEvents()
         res["pasos"].append("ventana")
         import cv2
@@ -115,7 +118,8 @@ def main():
     icono = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "empaque", "icono.png")
     if os.path.exists(icono):
         app.setWindowIcon(QIcon(icono))
-    app.setStyleSheet(QSS)
+    cargar_fuentes()
+    app.setStyleSheet(QSS_CLARO)
     ajustes = QSettings()
     forzar = bool(QGuiApplication.queryKeyboardModifiers() & Qt.ShiftModifier)
     raiz = elegir_biblioteca(ajustes, forzar)
