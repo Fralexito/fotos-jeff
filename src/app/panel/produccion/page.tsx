@@ -63,6 +63,7 @@ export default async function Produccion({
   return (
     <>
       <PageHeader
+        modulo="produccion"
         title="Producción"
         subtitle="El camino de cada pedido: edición, impresión y entrega."
         actions={vista === "entregas" && campana ? <Imprimir label="Imprimir lista" /> : null}
@@ -83,7 +84,7 @@ export default async function Produccion({
         <button className="btn secondary" type="submit">Ver</button>
       </form>
 
-      <div className="stepper">
+      <div className="stepper detalle">
         {ETAPAS.map((e, i) => (
           <div key={e.estado} className="step">
             <span className="step-n">{cuenta(e.estado)}</span>

@@ -28,6 +28,7 @@ export default async function Inventario({ searchParams }: { searchParams: Promi
   return (
     <>
       <PageHeader
+        modulo="inventario"
         title="Inventario"
         subtitle="Papel, marcos, tinta y todo lo que se usa para entregar los pedidos."
         actions={
@@ -55,7 +56,7 @@ export default async function Inventario({ searchParams }: { searchParams: Promi
         </div>
       )}
 
-      <div className="kpis">
+      <div className="kpis detalle">
         <div className="kpi"><div className="top">Materiales <span className="ico"><Boxes className="i" /></span></div><div className="val">{materiales.length}</div><div className="sub">en uso</div></div>
         <div className={`kpi${bajos.length ? " alert" : ""}`}><div className="top">Por agotarse <span className={`ico ${bajos.length ? "bad" : ""}`}><TriangleAlert className="i" /></span></div><div className="val">{bajos.length}</div><div className="sub">en o bajo el mínimo</div></div>
         <div className="kpi"><div className="top">Valor en almacén <span className="ico info"><PackagePlus className="i" /></span></div><div className="val">{S(valor)}</div><div className="sub">según costo por unidad</div></div>

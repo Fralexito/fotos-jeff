@@ -14,6 +14,7 @@ export default async function Catalogo({ searchParams }: { searchParams: Promise
   return (
     <>
       <PageHeader
+        modulo="catalogo"
         title="Catálogo"
         subtitle="Productos y combos a la venta. Lo activo aparece al crear pedidos y en la página web."
         actions={

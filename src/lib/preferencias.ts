@@ -1,5 +1,9 @@
 // Ajustes visuales de cada persona, guardados en perfiles.preferencias.
 export const OPCIONES = {
+  vista: [
+    { valor: "sencilla", texto: "Sencilla" },
+    { valor: "completa", texto: "Completa" },
+  ],
   color: [
     { valor: "turquesa", texto: "Turquesa", muestra: "#2a97a8" },
     { valor: "azul", texto: "Azul", muestra: "#3a6fd8" },
@@ -26,7 +30,7 @@ export const OPCIONES = {
 export type Clave = keyof typeof OPCIONES;
 export type Preferencias = { [K in Clave]: (typeof OPCIONES)[K][number]["valor"] };
 
-export const PREDETERMINADAS: Preferencias = { color: "turquesa", tema: "claro", letra: "normal", densidad: "comoda" };
+export const PREDETERMINADAS: Preferencias = { vista: "sencilla", color: "turquesa", tema: "claro", letra: "normal", densidad: "comoda" };
 
 // Toma lo guardado y descarta valores desconocidos.
 export function leerPreferencias(guardado: unknown): Preferencias {

@@ -17,6 +17,7 @@ export default async function Colegios({ searchParams }: { searchParams: Promise
   return (
     <>
       <PageHeader
+        modulo="colegios"
         title="Colegios y alumnos"
         subtitle="Cada colegio con sus campañas. La lista de alumnos se sube una vez y cada alumno recibe su código."
         actions={

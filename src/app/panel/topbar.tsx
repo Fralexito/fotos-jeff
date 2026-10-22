@@ -2,12 +2,26 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import type { Preferencias } from "@/lib/preferencias";
+import { guardarPreferencias } from "./actions";
 import { Boxes, HandCoins, Handshake, ListTodo, Package, Plus, Receipt, School, Search, Settings } from "lucide-react";
 
 // Barra superior: búsqueda en todo el sistema (atajo "/"), menú Nuevo y acceso a Ajustes.
-export function Topbar({ cobros, catalogo, clientes }: { cobros: boolean; catalogo: boolean; clientes: boolean }) {
+export function Topbar({ cobros, catalogo, clientes, prefs }: { cobros: boolean; catalogo: boolean; clientes: boolean; prefs: Preferencias }) {
   const router = useRouter();
+  const [sencilla, setSencilla] = useState(prefs.vista === "sencilla");
+  const [, start] = useTransition();
+  const cambiarVista = () => {
+    const nueva = !sencilla;
+    setSencilla(nueva);
+    const app = document.querySelector<HTMLElement>(".app");
+    if (app) app.dataset.vista = nueva ? "sencilla" : "completa";
+    start(async () => {
+      await guardarPreferencias({ ...prefs, vista: nueva ? "sencilla" : "completa" });
+      router.refresh();
+    });
+  };
   const ruta = usePathname();
   const params = useSearchParams();
   const input = useRef<HTMLInputElement>(null);
@@ -58,6 +72,10 @@ export function Topbar({ cobros, catalogo, clientes }: { cobros: boolean; catalo
         <kbd>/</kbd>
       </form>
       <div className="topactions">
+        <button type="button" className="switch" role="switch" aria-checked={sencilla} onClick={cambiarVista} title="Vista sencilla: solo lo esencial, con botones grandes">
+          <span className="track"><span className="thumb" /></span>
+          <span className="hide-sm">Vista sencilla</span>
+        </button>
         <div className="menu-wrap" ref={menu}>
           <button type="button" className="btn" aria-expanded={abierto} aria-haspopup="menu" onClick={() => setAbierto((v) => !v)}>
             <Plus className="i" /> <span className="hide-sm">Nuevo</span>

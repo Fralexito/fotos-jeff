@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Check, LoaderCircle } from "lucide-react";
 import { OPCIONES, type Clave, type Preferencias } from "@/lib/preferencias";
 import { guardarPreferencias } from "../actions";
 
 const GRUPOS: { clave: Exclude<Clave, "color">; titulo: string; ayuda: string }[] = [
+  { clave: "vista", titulo: "Vista", ayuda: "Sencilla muestra solo lo esencial, con botones grandes. Completa muestra todas las secciones y detalles." },
   { clave: "tema", titulo: "Modo", ayuda: "Oscuro descansa la vista de noche." },
   { clave: "letra", titulo: "Tamaño de letra", ayuda: "Más grande se lee mejor en pantallas pequeñas." },
   { clave: "densidad", titulo: "Espacio entre filas", ayuda: "Compacta muestra más alumnos y pedidos a la vez." },
@@ -16,6 +18,7 @@ export function Apariencia({ inicial }: { inicial: Preferencias }) {
   const [prefs, setPrefs] = useState(inicial);
   const [guardando, start] = useTransition();
   const [estado, setEstado] = useState<"" | "ok" | "error">("");
+  const router = useRouter();
 
   function cambiar<K extends Clave>(clave: K, valor: Preferencias[K]) {
     const nuevas = { ...prefs, [clave]: valor };
@@ -25,6 +28,7 @@ export function Apariencia({ inicial }: { inicial: Preferencias }) {
     start(async () => {
       const r = await guardarPreferencias(nuevas);
       setEstado(r.error ? "error" : "ok");
+      if (clave === "vista") router.refresh();
     });
   }
 
