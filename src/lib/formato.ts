@@ -34,3 +34,50 @@ export const ESTADO_PEDIDO: Record<string, [string, string]> = {
   entregado: ["Entregado", "b-good"],
   anulado: ["Anulado", "b-neutral"],
 };
+
+// Fecha de hoy en Lima como YYYY-MM-DD.
+export function hoyLima() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date());
+}
+
+// Fecha sin hora (YYYY-MM-DD) en formato corto: "24 oct."
+export function dia(d: string | null | undefined) {
+  return d ? fecha(d + "T12:00:00-05:00") : "";
+}
+
+// Enlace de WhatsApp con mensaje listo; acepta números peruanos de 9 dígitos.
+export function whatsapp(telefono: string | null | undefined, mensaje = "") {
+  const n = (telefono ?? "").replace(/\D/g, "");
+  if (n.length < 9) return null;
+  const completo = n.length === 9 ? "51" + n : n;
+  return `https://wa.me/${completo}${mensaje ? `?text=${encodeURIComponent(mensaje)}` : ""}`;
+}
+
+export const ETAPA: Record<string, [string, string]> = {
+  nuevo: ["Nuevo", "b-neutral"],
+  contactado: ["Contactado", "b-info"],
+  reunion: ["Reunión", "b-info"],
+  propuesta: ["Propuesta", "b-warn"],
+  ganado: ["Ganado", "b-good"],
+  perdido: ["Perdido", "b-bad"],
+};
+
+export const CARGO: Record<string, string> = {
+  director: "Director(a)",
+  subdirector: "Subdirector(a)",
+  docente: "Docente / tutor",
+  comite: "Comité / APAFA",
+  padre: "Padre o madre",
+  otro: "Otro",
+};
+
+export const TIPO_ACTIVIDAD: Record<string, string> = {
+  llamada: "Llamada",
+  whatsapp: "WhatsApp",
+  visita: "Visita",
+  reunion: "Reunión",
+  nota: "Nota",
+};
+
+export const CATEGORIAS_GASTO = ["Materiales", "Impresión", "Transporte", "Sueldos", "Alquiler", "Servicios", "Equipos", "Otros"];
+export const CATEGORIAS_INGRESO = ["Fondo inicial", "Venta suelta", "Otros"];

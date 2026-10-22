@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, ChevronRight, CircleAlert, HandCoins, PackageCheck, School, Sparkles, Wallet } from "lucide-react";
+import { ArrowUpRight, Boxes, CalendarDays, ChevronRight, CircleAlert, CircleCheck, Factory, HandCoins, Handshake, ListTodo, PackageCheck, School, Sparkles, Wallet } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
 import { S, TIPO_CAMPANA, fecha, saludo } from "@/lib/formato";
 import { Avatar, Empty } from "@/components/ui";
@@ -15,7 +15,7 @@ export default async function Inicio() {
   const dias = Array.from({ length: 7 }, (_, i) => diaLima(new Date(Date.now() - (6 - i) * 86400000)));
   const desde = `${dias[0]}T00:00:00-05:00`;
 
-  const [semana, saldos, listos, porVerificar, proximas] = await Promise.all([
+  const [semana, saldos, listos, porVerificar, proximas, tareas, materiales] = await Promise.all([
     veDinero
       ? supabase.from("pagos").select("monto, creado_en").eq("estado", "confirmado").gte("creado_en", desde)
       : null,
@@ -30,7 +30,16 @@ export default async function Inicio() {
       .neq("estado", "cerrada")
       .order("fecha_captura", { ascending: true, nullsFirst: false })
       .limit(5),
+    supabase
+      .from("tareas")
+      .select("id, titulo, vence, colegios(nombre), oportunidad_id, colegio_id")
+      .eq("hecha", false)
+      .lte("vence", dias[6])
+      .order("vence")
+      .limit(6),
+    supabase.from("materiales").select("id, nombre, stock, minimo, unidad").eq("activo", true),
   ]);
+  const bajos = (materiales.data ?? []).filter((m) => Number(m.stock) <= Number(m.minimo));
 
   const porDia = dias.map((d) =>
     (semana?.data ?? []).filter((p) => diaLima(new Date(p.creado_en)) === d).reduce((s, p) => s + Number(p.monto), 0),
@@ -88,11 +97,11 @@ export default async function Inicio() {
             <div className="sub">{conSaldo} {conSaldo === 1 ? "pedido con saldo" : "pedidos con saldo"} <ArrowUpRight className="i go" /></div>
           </Link>
         )}
-        <div className="kpi">
+        <Link className="kpi" href="/panel/produccion">
           <div className="top">Listos para entregar <span className="ico info"><PackageCheck className="i" /></span></div>
           <div className="val"><Contador valor={listos.count ?? 0} /></div>
-          <div className="sub">Pedidos ya impresos</div>
-        </div>
+          <div className="sub">Pedidos ya impresos <ArrowUpRight className="i go" /></div>
+        </Link>
         {veDinero &&
           (nVerificar > 0 ? (
             <Link className="kpi alert" href="/panel/cobros#verificar">
@@ -109,6 +118,7 @@ export default async function Inicio() {
           ))}
       </div>
 
+      <div className="grid-2">
       <div className="card">
         <div className="card-head">
           <div>
@@ -148,10 +158,54 @@ export default async function Inicio() {
         )}
       </div>
 
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h2>Pendientes de hoy</h2>
+            <p>Recordatorios y materiales por comprar</p>
+          </div>
+        </div>
+        {(tareas.data ?? []).length === 0 && bajos.length === 0 ? (
+          <Empty icon={CircleCheck} title="Todo al día">No hay recordatorios vencidos ni materiales por agotarse.</Empty>
+        ) : (
+          <div className="list">
+            {(tareas.data ?? []).map((t) => (
+              <Link className="item" key={t.id} href={t.oportunidad_id ? `/panel/clientes/${t.oportunidad_id}` : "/panel/clientes?vista=tareas"}>
+                <div className="main">
+                  <span className="dot-ico"><ListTodo className="i" /></span>
+                  <div>
+                    <div className="title">{t.titulo}</div>
+                    <div className="meta">{(t.colegios as unknown as { nombre: string } | null)?.nombre ?? "Recordatorio"}</div>
+                  </div>
+                </div>
+                <div className="end"><span className={`badge ${t.vence < dias[6] ? "b-bad" : "b-warn"}`}>{t.vence < dias[6] ? "Vencido" : "Hoy"}</span></div>
+              </Link>
+            ))}
+            {bajos.slice(0, 4).map((m) => (
+              <Link className="item" key={m.id} href="/panel/inventario">
+                <div className="main">
+                  <span className="dot-ico warn"><Boxes className="i" /></span>
+                  <div>
+                    <div className="title">Comprar {m.nombre}</div>
+                    <div className="meta">Quedan {Number(m.stock)} {m.unidad}</div>
+                  </div>
+                </div>
+                <div className="end"><span className="badge b-warn">Stock bajo</span></div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+      </div>
+
       <div className="quick">
-        <Link href="/panel/colegios">
-          <span className="ico"><School /></span>
-          <span><b>Colegios y alumnos</b><span>Listas, secciones y fechas</span></span>
+        <Link href="/panel/clientes">
+          <span className="ico"><Handshake /></span>
+          <span><b>Clientes</b><span>Colegios por conseguir</span></span>
+        </Link>
+        <Link href="/panel/produccion">
+          <span className="ico"><Factory /></span>
+          <span><b>Producción</b><span>Qué falta editar, imprimir y entregar</span></span>
         </Link>
         {veDinero && (
           <Link href="/panel/cobros">

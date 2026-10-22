@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Camera, LogOut } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
+import { hoyLima } from "@/lib/formato";
 import { Avatar } from "@/components/ui";
 import { salir } from "../login/actions";
 import { Suspense } from "react";
@@ -12,17 +13,35 @@ const NOMBRE_ROL = { dueno: "Dueño", operador: "Operador", fotografo: "Fotógra
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const { supabase, perfil } = await requirePerfil();
 
+  const dinero = puede(perfil, "cobros");
+  const [{ count: porVerificar }, { count: tareasHoy }] = await Promise.all([
+    dinero
+      ? supabase.from("pagos").select("id", { count: "exact", head: true }).eq("estado", "por_verificar")
+      : Promise.resolve({ count: 0 }),
+    supabase.from("tareas").select("id", { count: "exact", head: true }).eq("hecha", false).lte("vence", hoyLima()),
+  ]);
+
+  // En celular solo caben 5 accesos abajo; el resto queda en "Más".
   const gestion: ItemNav[] = [
-    { href: "/panel", texto: "Inicio", icono: "inicio" },
+    { href: "/panel", texto: "Inicio", icono: "inicio", movil: true },
+    ...(puede(perfil, "clientes")
+      ? [{ href: "/panel/clientes", texto: "Clientes", icono: "clientes", count: tareasHoy ?? 0, movil: true } as ItemNav]
+      : []),
     { href: "/panel/colegios", texto: "Colegios y alumnos", icono: "colegios" },
+    { href: "/panel/produccion", texto: "Producción", icono: "produccion", movil: true },
   ];
   const ventas: ItemNav[] = [];
-  if (puede(perfil, "cobros")) {
-    const { count } = await supabase.from("pagos").select("id", { count: "exact", head: true }).eq("estado", "por_verificar");
-    ventas.push({ href: "/panel/cobros", texto: "Cobros", icono: "cobros", count: count ?? 0 });
+  if (dinero) {
+    ventas.push({ href: "/panel/cobros", texto: "Cobros", icono: "cobros", count: porVerificar ?? 0, movil: true });
+    ventas.push({ href: "/panel/caja", texto: "Caja", icono: "caja" });
   }
   if (puede(perfil, "catalogo")) ventas.push({ href: "/panel/catalogo", texto: "Catálogo", icono: "catalogo" });
-  const cuenta: ItemNav[] = [{ href: "/panel/ajustes", texto: "Ajustes", icono: "ajustes" }];
+  const operacion: ItemNav[] = [{ href: "/panel/inventario", texto: "Inventario", icono: "inventario" }];
+  if (puede(perfil, "reportes")) operacion.push({ href: "/panel/reportes", texto: "Reportes", icono: "reportes" });
+  const cuenta: ItemNav[] = [
+    { href: "/panel/ajustes", texto: "Ajustes", icono: "ajustes" },
+    { href: "/panel/mas", texto: "Más", icono: "mas", movil: true },
+  ];
   const p = perfil.preferencias;
 
   return (
@@ -39,6 +58,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         <Nav items={gestion} />
         {ventas.length > 0 && <div className="section">Ventas</div>}
         <Nav items={ventas} />
+        <div className="section">Operación</div>
+        <Nav items={operacion} />
         <div className="section hide-mobile">Cuenta</div>
         <Nav items={cuenta} />
         <div className="grow" />
@@ -57,7 +78,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       </aside>
       <main>
         <Suspense>
-          <Topbar cobros={puede(perfil, "cobros")} catalogo={puede(perfil, "catalogo")} />
+          <Topbar cobros={dinero} catalogo={puede(perfil, "catalogo")} clientes={puede(perfil, "clientes")} />
         </Suspense>
         <div className="content">{children}</div>
       </main>
