@@ -4,6 +4,7 @@ import { randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
+import { sedeValida } from "@/lib/sedes";
 import { leerPreferencias, type Preferencias } from "@/lib/preferencias";
 
 const txt = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -34,7 +35,7 @@ export async function crearColegio(fd: FormData) {
       codigo: txt(fd, "codigo").toUpperCase().replace(/\s+/g, ""),
       nombre: txt(fd, "nombre"),
       ciudad: txt(fd, "ciudad") || "Nauta",
-      sede: txt(fd, "sede") === "iquitos" ? "iquitos" : "nauta",
+      sede: sedeValida(txt(fd, "sede")),
       zona: ["carretera", "rio"].includes(txt(fd, "zona")) ? txt(fd, "zona") : "ciudad",
       director: opc(fd, "director"),
       contacto_nombre: opc(fd, "contacto_nombre"),
@@ -52,7 +53,7 @@ export async function cambiarSedeColegio(fd: FormData) {
   const { error } = await supabase
     .from("colegios")
     .update({
-      sede: txt(fd, "sede") === "iquitos" ? "iquitos" : "nauta",
+      sede: sedeValida(txt(fd, "sede")),
       zona: ["carretera", "rio"].includes(txt(fd, "zona")) ? txt(fd, "zona") : "ciudad",
       ciudad: txt(fd, "ciudad") || "Nauta",
     })
