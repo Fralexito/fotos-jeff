@@ -28,7 +28,8 @@ export const OPCIONES = {
   sede: [
     { valor: "todas", texto: "Todas las sedes" },
     { valor: "nauta", texto: "Nauta" },
-    { valor: "iquitos", texto: "Iquitos" },
+    { valor: "iquitos", texto: "Iquitos (Liz)" },
+    { valor: "iquitos2", texto: "Iquitos (Dan)" },
   ],
 } as const;
 

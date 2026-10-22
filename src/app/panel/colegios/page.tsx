@@ -54,7 +54,7 @@ export default async function Colegios({ searchParams }: { searchParams: Promise
                 </label>
                 <label className="field">
                   Ciudad o pueblo
-                  <input name="ciudad" defaultValue={sede === "iquitos" ? "Iquitos" : "Nauta"} />
+                  <input name="ciudad" defaultValue={sede?.startsWith("iquitos") ? "Iquitos" : "Nauta"} />
                   <span className="hint">Ej.: Nauta, Iquitos, San Joaquín de Omaguas, km 50.</span>
                 </label>
                 <label className="field">Director(a)<input name="director" /></label>

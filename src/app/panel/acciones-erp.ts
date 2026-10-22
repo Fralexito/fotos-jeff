@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
 import { resumenCaja } from "@/lib/caja";
 import { hoyLima } from "@/lib/formato";
+import { sedeValida } from "@/lib/sedes";
 
 const txt = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const opc = (fd: FormData, k: string) => txt(fd, k) || null;
@@ -16,7 +17,7 @@ const num = (fd: FormData, k: string) => {
 // Sede del formulario; si no viene, la que la persona tiene elegida arriba (o Nauta).
 const sedeDe = (fd: FormData, elegida: string) => {
   const v = txt(fd, "sede") || elegida;
-  return v === "iquitos" ? "iquitos" : "nauta";
+  return sedeValida(v);
 };
 
 // Vuelve a la pantalla desde donde se envió el formulario, con un aviso.
