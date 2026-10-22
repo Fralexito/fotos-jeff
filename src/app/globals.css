@@ -49,7 +49,7 @@
   --shadow: 0 1px 3px rgba(15, 31, 27, .06), 0 4px 12px rgba(15, 31, 27, .04);
   --shadow-lg: 0 12px 40px rgba(15, 31, 27, .18);
 
-  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font: var(--font-inter), "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   color-scheme: light;
 }
 
@@ -692,3 +692,13 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
   *, *::before, *::after { animation: none !important; transition-property: opacity, background-color, color, border-color !important; }
   .spark-line { stroke-dashoffset: 0; }
 }
+
+/* Esqueleto de carga */
+.skeleton { display: grid; gap: 20px; animation: aparecer 200ms ease 120ms both; }
+@keyframes aparecer { from { opacity: 0; } }
+.sk { border-radius: 14px; background: linear-gradient(90deg, var(--line) 0%, var(--surface-2) 50%, var(--line) 100%); background-size: 200% 100%; animation: brillo 1.2s linear infinite; }
+@keyframes brillo { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.sk-title { width: 260px; height: 34px; border-radius: 10px; }
+.sk-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.sk-card { height: 128px; }
+.sk-block { height: 300px; }
