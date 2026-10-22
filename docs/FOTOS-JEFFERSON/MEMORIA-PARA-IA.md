@@ -19,6 +19,8 @@ Sistemas:
 
 Reglas de fotos: 0 % de cambio en rasgos faciales, corporales o fenotípicos. Solo mejorar calidad y detalles leves de piel; con IA, correcciones leves (ojos, cabeza, postura) con verificación de identidad y original guardado. Estilo: corte limpio del cabello, fondo liso (celeste 107,201,237), sin resplandor. 300 DPI, headroom para el birrete, cuerpo anclado a la base.
 
+Se trabaja desde DOS cuentas de Claude que no comparten memoria: la fuente de verdad es main en GitHub. Sigue docs/FOTOS-JEFFERSON/TRABAJO-DOS-CUENTAS.md (rama por tarea desde main, anotar en EN-CURSO.md, un cambio de Supabase a la vez con migración fechada, fusionar y actualizar este archivo y PENDIENTES.md al terminar).
+
 Nunca escribas claves ni contraseñas en el repo ni en chats.
 ```
 
@@ -29,7 +31,7 @@ Nunca escribas claves ni contraseñas en el repo ni en chats.
 3. [03-motor-edicion/README.md](03-motor-edicion/README.md)
 4. [02-web-publica/README.md](02-web-publica/README.md)
 5. [04-programa-pc/README.md](04-programa-pc/README.md), [05-marketing/README.md](05-marketing/README.md)
-6. [PENDIENTES.md](PENDIENTES.md)
+6. [PENDIENTES.md](PENDIENTES.md), [EN-CURSO.md](EN-CURSO.md) y [TRABAJO-DOS-CUENTAS.md](TRABAJO-DOS-CUENTAS.md)
 
 ## Mantener al día
 

@@ -19,6 +19,8 @@ Manual de todo lo construido hasta el **22 de octubre de 2026**. Sirve para dos 
 | [`05-marketing/`](05-marketing/README.md) | Plan de marketing y modelo de negocio | Entregado |
 | [`PENDIENTES.md`](PENDIENTES.md) | Lo que falta, por sistema | Vivo |
 | [`MEMORIA-PARA-IA.md`](MEMORIA-PARA-IA.md) | Texto corto para pegar como memoria/contexto en cualquier IA | Vivo |
+| [`TRABAJO-DOS-CUENTAS.md`](TRABAJO-DOS-CUENTAS.md) | Reglas para trabajar desde dos cuentas de Claude sin pisarse | Vivo |
+| [`EN-CURSO.md`](EN-CURSO.md) | Quién trabaja qué ahora mismo | Vivo |
 
 ## El negocio
 
