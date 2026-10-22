@@ -1,7 +1,8 @@
 import { requirePerfil } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
 import { Avatar, PageHeader } from "@/components/ui";
-import { guardarMiPerfil } from "../actions";
+import { MapPin } from "lucide-react";
+import { guardarMiPerfil, guardarSede } from "../actions";
 import { Apariencia } from "./apariencia";
 
 const NOMBRE_ROL = { dueno: "Dueño", operador: "Operador", fotografo: "Fotógrafo" } as const;
@@ -18,6 +19,8 @@ export default async function Ajustes({ searchParams }: { searchParams: Promise<
     perfil.rol === "dueno"
       ? (await supabase.from("perfiles").select("id, nombre, telefono, rol").order("nombre")).data ?? []
       : [];
+  const { data: sedes } = await supabase.from("sedes").select("id, nombre, encargado, telefono, direccion").order("orden");
+  const esDueno = perfil.rol === "dueno";
 
   return (
     <>
@@ -26,6 +29,29 @@ export default async function Ajustes({ searchParams }: { searchParams: Promise<
       <Aviso {...aviso} />
 
       <Apariencia inicial={perfil.preferencias} />
+
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h2>Sedes</h2>
+            <p>Cada colegio, pedido y caja queda marcado con su sede. Arriba eliges cuál ver.</p>
+          </div>
+        </div>
+        <div className="sedes-grid">
+          {(sedes ?? []).map((s) => (
+            <form key={s.id} action={guardarSede} className="sede-card form">
+              <input type="hidden" name="id" value={s.id} />
+              <h3><MapPin className="i" /> Sede {s.nombre}</h3>
+              <div className="fields">
+                <label className="field">Encargado(a)<input name="encargado" defaultValue={s.encargado ?? ""} disabled={!esDueno} /></label>
+                <label className="field">Celular<input name="telefono" type="tel" defaultValue={s.telefono ?? ""} disabled={!esDueno} /></label>
+                <label className="field" style={{ gridColumn: "1 / -1" }}>Dirección<input name="direccion" defaultValue={s.direccion ?? ""} disabled={!esDueno} /></label>
+              </div>
+              {esDueno && <div className="form-foot"><button className="btn secondary sm" type="submit">Guardar</button></div>}
+            </form>
+          ))}
+        </div>
+      </div>
 
       <div className="grid-2">
         <div className="card">

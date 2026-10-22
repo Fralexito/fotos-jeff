@@ -1,36 +1,53 @@
 import Link from "next/link";
-import { Download, HandCoins, Receipt, ShoppingBag, TrendingUp } from "lucide-react";
+import { Download, HandCoins, MapPin, Receipt, ShoppingBag, TrendingUp } from "lucide-react";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
 import { S, whatsapp } from "@/lib/formato";
 import { deudores } from "@/lib/reportes";
+import { NOMBRE_SEDE, SEDES, filtroSede } from "@/lib/sedes";
 import { Avatar, Empty, PageHeader, WhatsApp } from "@/components/ui";
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic"];
 
 export default async function Reportes({ searchParams }: { searchParams: Promise<{ anio?: string }> }) {
   const { anio: a } = await searchParams;
-  const { supabase } = await requirePerfil(PERMISOS.reportes);
+  const { supabase, perfil } = await requirePerfil(PERMISOS.reportes);
+  const sede = filtroSede(perfil.preferencias.sede);
   const actual = new Date().getFullYear();
   const anio = Number(a) || actual;
   const desde = `${anio}-01-01T00:00:00-05:00`;
   const hasta = `${anio + 1}-01-01T00:00:00-05:00`;
 
+  // Con una sede elegida arriba, todo se filtra a esa sede.
+  let qCampanas = supabase.from("campanas").select("id, nombre, colegio_id, colegios!inner(nombre, sede)").eq("anio", anio);
+  let qPagos = supabase.from("pagos").select("monto, creado_en, pedidos!inner(sede)").eq("estado", "confirmado").gte("creado_en", desde).lt("creado_en", hasta);
+  let qGastos = supabase.from("movimientos_caja").select("monto, categoria, sede").eq("tipo", "egreso").gte("fecha", `${anio}-01-01`).lt("fecha", `${anio + 1}-01-01`);
+  let qItems = supabase
+    .from("pedido_items")
+    .select("cantidad, precio_unitario, productos(nombre), pedidos!inner(estado, sede, campanas!inner(anio))")
+    .eq("pedidos.campanas.anio", anio)
+    .neq("pedidos.estado", "anulado");
+  if (sede) {
+    qCampanas = qCampanas.eq("colegios.sede", sede);
+    qPagos = qPagos.eq("pedidos.sede", sede);
+    qGastos = qGastos.eq("sede", sede);
+    qItems = qItems.eq("pedidos.sede", sede);
+  }
   const [{ data: campanas }, { data: pagos }, { data: gastos }, { data: items }, lista] = await Promise.all([
-    supabase.from("campanas").select("id, nombre, colegio_id, colegios(nombre)").eq("anio", anio),
-    supabase.from("pagos").select("monto, creado_en").eq("estado", "confirmado").gte("creado_en", desde).lt("creado_en", hasta),
-    supabase.from("movimientos_caja").select("monto, categoria").eq("tipo", "egreso").gte("fecha", `${anio}-01-01`).lt("fecha", `${anio + 1}-01-01`),
-    supabase
-      .from("pedido_items")
-      .select("cantidad, precio_unitario, productos(nombre), pedidos!inner(estado, campanas!inner(anio))")
-      .eq("pedidos.campanas.anio", anio)
-      .neq("pedidos.estado", "anulado"),
-    deudores(supabase),
+    qCampanas, qPagos, qGastos, qItems, deudores(supabase, sede),
   ]);
 
   const idsCamp = (campanas ?? []).map((c) => c.id);
   const { data: saldos } = idsCamp.length
-    ? await supabase.from("pedidos_saldo").select("campana_id, total, pagado, saldo").in("campana_id", idsCamp).neq("estado", "anulado")
-    : { data: [] as { campana_id: string; total: number; pagado: number; saldo: number }[] };
+    ? await supabase.from("pedidos_saldo").select("campana_id, total, pagado, saldo, sede").in("campana_id", idsCamp).neq("estado", "anulado")
+    : { data: [] as { campana_id: string; total: number; pagado: number; saldo: number; sede: string }[] };
+
+  // Comparación entre sedes (solo cuando se ven todas).
+  const porSede = SEDES.map(([id, nombre]) => {
+    const ss = (saldos ?? []).filter((x) => x.sede === id);
+    const cobr = (pagos ?? []).filter((p) => (p.pedidos as unknown as { sede: string } | null)?.sede === id).reduce((t, p) => t + Number(p.monto), 0);
+    const gast = (gastos ?? []).filter((g) => g.sede === id).reduce((t, g) => t + Number(g.monto), 0);
+    return { id, nombre, pedidos: ss.length, vendido: ss.reduce((t, x) => t + Number(x.total), 0), cobrado: cobr, gastos: gast, debe: ss.reduce((t, x) => t + Number(x.saldo), 0) };
+  });
 
   // Ventas por colegio.
   const porColegio = new Map<string, { id: string; nombre: string; pedidos: number; vendido: number; cobrado: number; saldo: number }>();
@@ -70,7 +87,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
       <PageHeader
         modulo="reportes"
         title="Reportes"
-        subtitle="Cómo va el negocio: ventas, cobros, gastos y quién debe."
+        subtitle={sede ? `Sede ${NOMBRE_SEDE[sede]}: ventas, cobros, gastos y quién debe.` : "Cómo va el negocio: ventas, cobros, gastos y quién debe."}
         actions={
           <div className="seg-links">
             {[actual - 2, actual - 1, actual].map((y) => (
@@ -86,6 +103,29 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
         <div className="kpi"><div className="top">Gastos {anio} <span className="ico bad"><Receipt className="i" /></span></div><div className="val">{S(gastado)}</div><div className="sub">quedan {S(cobrado - gastado)} libres</div></div>
         <div className={`kpi${deuda > 0 ? " alert" : ""}`}><div className="top">Por cobrar (total) <span className="ico warn"><HandCoins className="i" /></span></div><div className="val">{S(deuda)}</div><div className="sub">{lista.length} pedidos con saldo</div></div>
       </div>
+
+      {!sede && (
+        <div className="card">
+          <div className="card-head"><div><h2>Por sede</h2><p>Campañas {anio}. Elige una sede arriba para ver solo esa.</p></div></div>
+          <div className="table-wrap">
+            <table className="table">
+              <thead><tr><th>Sede</th><th className="num">Pedidos</th><th className="num">Vendido</th><th className="num">Cobrado</th><th className="num">Gastos</th><th className="num">Debe</th></tr></thead>
+              <tbody>
+                {porSede.map((x) => (
+                  <tr key={x.id}>
+                    <td><span className="person"><span className="avatar sq c0"><MapPin className="i" /></span><b>{x.nombre}</b></span></td>
+                    <td className="num">{x.pedidos}</td>
+                    <td className="num money">{S(x.vendido)}</td>
+                    <td className="num">{S(x.cobrado)}</td>
+                    <td className="num">{S(x.gastos)}</td>
+                    <td className="num">{x.debe > 0 ? <span className="neg">{S(x.debe)}</span> : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="grid-2">
         <div className="card">

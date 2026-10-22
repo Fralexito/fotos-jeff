@@ -10,14 +10,16 @@ export type PagoDia = {
 };
 
 // Todo lo que entró y salió en un día de Lima: pagos confirmados de pedidos + movimientos manuales.
-export async function resumenCaja(supabase: SupabaseClient, fecha: string) {
+// Cada sede tiene su propia caja.
+export async function resumenCaja(supabase: SupabaseClient, fecha: string, sede: string) {
   const desde = `${fecha}T00:00:00-05:00`;
   const hasta = new Date(new Date(desde).getTime() + 86400000).toISOString();
   const [{ data: pagos }, { data: movs }, { data: cierre }] = await Promise.all([
     supabase
       .from("pagos")
-      .select("id, monto, metodo, creado_en, pedidos(numero, alumnos(nombres, apellidos))")
+      .select("id, monto, metodo, creado_en, pedidos!inner(numero, sede, alumnos(nombres, apellidos))")
       .eq("estado", "confirmado")
+      .eq("pedidos.sede", sede)
       .gte("creado_en", desde)
       .lt("creado_en", hasta)
       .order("creado_en")
@@ -26,9 +28,10 @@ export async function resumenCaja(supabase: SupabaseClient, fecha: string) {
       .from("movimientos_caja")
       .select("id, tipo, categoria, concepto, monto, metodo, creado_en, perfiles(nombre)")
       .eq("fecha", fecha)
+      .eq("sede", sede)
       .order("creado_en")
       .returns<Movimiento[]>(),
-    supabase.from("cierres_caja").select("*, perfiles(nombre)").eq("fecha", fecha).maybeSingle(),
+    supabase.from("cierres_caja").select("*, perfiles(nombre)").eq("fecha", fecha).eq("sede", sede).maybeSingle(),
   ]);
 
   const p = pagos ?? [];

@@ -5,9 +5,10 @@ import { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Search } from "lucide-react";
 import { ESTADO_PEDIDO, S, TIPO_CAMPANA } from "@/lib/formato";
 import { salon, type AlumnoFila } from "@/lib/datos";
+import { NOMBRE_SEDE, NOMBRE_ZONA } from "@/lib/sedes";
 
 export type ColegioArbol = {
-  id: string; nombre: string; codigo: string; ciudad: string; director: string | null;
+  id: string; nombre: string; codigo: string; ciudad: string; director: string | null; sede: string; zona: string;
   campanas: { id: string; nombre: string; anio: number; tipo: string; estado: string }[];
 };
 type Alumno = Pick<AlumnoFila, "id" | "codigo" | "nombres" | "apellidos" | "grado" | "seccion" | "apoderado" | "telefono" | "campanaId" | "colegioId" | "anio" | "pedidos" | "estado" | "saldo" | "total">;
@@ -80,7 +81,7 @@ export function ArbolColegios({ colegios, alumnos, anios }: { colegios: ColegioA
                 <span className="colegio-ini" aria-hidden>{c.codigo.slice(0, 3)}</span>
                 <span className="colegio-nom">
                   <b>{c.nombre}</b>
-                  <small>{c.ciudad}{c.director && ` · ${c.director}`}</small>
+                  <small>Sede {NOMBRE_SEDE[c.sede] ?? c.sede} · {c.ciudad}{c.zona !== "ciudad" && ` (${NOMBRE_ZONA[c.zona]?.toLowerCase()})`}{c.director && ` · ${c.director}`}</small>
                 </span>
                 <span className="colegio-datos">
                   <span><b>{lista.length}</b> alumnos</span>

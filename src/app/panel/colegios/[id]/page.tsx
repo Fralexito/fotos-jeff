@@ -9,7 +9,8 @@ import { CARGO, TIPO_CAMPANA, fecha, whatsapp } from "@/lib/formato";
 import { Avatar, WhatsApp } from "@/components/ui";
 import { FormActividad, Historial } from "@/components/historial";
 import { crearContacto } from "../../acciones-erp";
-import { crearCampana } from "../../actions";
+import { cambiarSedeColegio, crearCampana } from "../../actions";
+import { NOMBRE_SEDE, NOMBRE_ZONA, SEDES, ZONAS } from "@/lib/sedes";
 
 const ESTADO: Record<string, [string, string]> = {
   planificada: ["Planificada", "b-neutral"],
@@ -52,7 +53,7 @@ export default async function Colegio({
       <PageHeader
         crumbs={[{ href: "/panel/colegios", label: "Colegios" }]}
         title={colegio.nombre}
-        subtitle={`${colegio.ciudad} · código ${colegio.codigo}`}
+        subtitle={`Sede ${NOMBRE_SEDE[colegio.sede] ?? colegio.sede} · ${colegio.ciudad}${colegio.zona !== "ciudad" ? ` (${NOMBRE_ZONA[colegio.zona]?.toLowerCase()})` : ""} · código ${colegio.codigo}`}
         actions={
           <Modal label="Nueva campaña" title="Nueva campaña" icon={<CalendarPlus className="i" />}>
             <form action={crearCampana} className="form">
@@ -114,6 +115,25 @@ export default async function Colegio({
               <div><dt>Teléfono</dt><dd>{colegio.contacto_telefono ?? "—"}</dd></div>
               <div><dt>Dirección</dt><dd>{colegio.direccion ?? "—"}</dd></div>
             </dl>
+            <form action={cambiarSedeColegio} className="form sede-form">
+              <input type="hidden" name="id" value={colegio.id} />
+              <div className="fields">
+                <label className="field">
+                  Sede
+                  <select name="sede" defaultValue={colegio.sede}>
+                    {SEDES.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+                  </select>
+                </label>
+                <label className="field">
+                  Dónde queda
+                  <select name="zona" defaultValue={colegio.zona}>
+                    {ZONAS.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+                  </select>
+                </label>
+                <label className="field">Ciudad o pueblo<input name="ciudad" defaultValue={colegio.ciudad} /></label>
+              </div>
+              <div className="form-foot"><button className="btn secondary sm" type="submit">Guardar ubicación</button></div>
+            </form>
           </div>
         </div>
       </div>

@@ -1,10 +1,11 @@
 import { PERMISOS, requirePerfil } from "@/lib/auth";
 import { deudores } from "@/lib/reportes";
+import { filtroSede } from "@/lib/sedes";
 
 // Lista de deudores en CSV para abrir en Excel.
 export async function GET() {
-  const { supabase } = await requirePerfil(PERMISOS.reportes);
-  const filas = await deudores(supabase);
+  const { supabase, perfil } = await requirePerfil(PERMISOS.reportes);
+  const filas = await deudores(supabase, filtroSede(perfil.preferencias.sede));
   const celda = (v: string | number | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const csv = [
     ["Pedido", "Alumno", "Colegio", "Campaña", "Salón", "Celular apoderado", "Total", "Pagado", "Saldo"].map(celda).join(";"),

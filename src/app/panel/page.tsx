@@ -1,3 +1,4 @@
+import { filtroSede } from "@/lib/sedes";
 import Link from "next/link";
 import { ArrowUpRight, Search, Truck, Boxes, CalendarDays, ChevronRight, CircleAlert, CircleCheck, Factory, HandCoins, Handshake, ListTodo, PackageCheck, School, Sparkles, Wallet } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
@@ -15,21 +16,32 @@ export default async function Inicio() {
   const dias = Array.from({ length: 7 }, (_, i) => diaLima(new Date(Date.now() - (6 - i) * 86400000)));
   const desde = `${dias[0]}T00:00:00-05:00`;
 
+  // Si arriba se eligió una sede, el resumen es solo de esa sede.
+  const sede = filtroSede(perfil.preferencias.sede);
+  let qSemana = supabase.from("pagos").select(sede ? "monto, creado_en, pedidos!inner(sede)" : "monto, creado_en").eq("estado", "confirmado").gte("creado_en", desde);
+  let qSaldos = supabase.from("pedidos_saldo").select("saldo").neq("estado", "anulado").gt("saldo", 0);
+  let qListos = supabase.from("pedidos").select("id", { count: "exact", head: true }).eq("estado", "en_impresion");
+  let qProximas = supabase
+    .from("campanas")
+    .select(sede ? "id, nombre, tipo, fecha_captura, colegios!inner(nombre, sede), alumnos(count)" : "id, nombre, tipo, fecha_captura, colegios(nombre), alumnos(count)")
+    .neq("estado", "cerrada")
+    .order("fecha_captura", { ascending: true, nullsFirst: false })
+    .limit(5);
+  if (sede) {
+    qSemana = qSemana.eq("pedidos.sede", sede);
+    qSaldos = qSaldos.eq("sede", sede);
+    qListos = qListos.eq("sede", sede);
+    qProximas = qProximas.eq("colegios.sede", sede);
+  }
+
   const [semana, saldos, listos, porVerificar, proximas, tareas, materiales] = await Promise.all([
-    veDinero
-      ? supabase.from("pagos").select("monto, creado_en").eq("estado", "confirmado").gte("creado_en", desde)
-      : null,
-    veDinero ? supabase.from("pedidos_saldo").select("saldo").neq("estado", "anulado").gt("saldo", 0) : null,
-    supabase.from("pedidos").select("id", { count: "exact", head: true }).eq("estado", "en_impresion"),
+    veDinero ? qSemana.returns<{ monto: number; creado_en: string }[]>() : null,
+    veDinero ? qSaldos : null,
+    qListos,
     veDinero
       ? supabase.from("pagos").select("id", { count: "exact", head: true }).eq("estado", "por_verificar")
       : null,
-    supabase
-      .from("campanas")
-      .select("id, nombre, tipo, fecha_captura, colegios(nombre), alumnos(count)")
-      .neq("estado", "cerrada")
-      .order("fecha_captura", { ascending: true, nullsFirst: false })
-      .limit(5),
+    qProximas.returns<{ id: string; nombre: string; tipo: string; fecha_captura: string | null; colegios: { nombre: string } | null; alumnos: { count: number }[] }[]>(),
     supabase
       .from("tareas")
       .select("id, titulo, vence, colegios(nombre), oportunidad_id, colegio_id")

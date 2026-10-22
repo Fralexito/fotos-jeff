@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CircleCheck, CircleDashed, CircleDot, Receipt, Search } from "lucide-react";
+import { filtroSede } from "@/lib/sedes";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
 import { Avatar, Empty, PageHeader } from "@/components/ui";
@@ -17,11 +18,14 @@ export default async function Cobros({
   searchParams: Promise<{ q?: string; ok?: string; error?: string }>;
 }) {
   const { q = "", ...aviso } = await searchParams;
-  const { supabase } = await requirePerfil(PERMISOS.cobros);
+  const { supabase, perfil } = await requirePerfil(PERMISOS.cobros);
   const busqueda = q.trim();
+  const sede = filtroSede(perfil.preferencias.sede);
 
   // Resumen de todos los pedidos vigentes
-  const { data: todos } = await supabase.from("pedidos_saldo").select("pagado, saldo").neq("estado", "anulado").returns<Pick<Saldo, "pagado" | "saldo">[]>();
+  let qTodos = supabase.from("pedidos_saldo").select("pagado, saldo").neq("estado", "anulado");
+  if (sede) qTodos = qTodos.eq("sede", sede);
+  const { data: todos } = await qTodos.returns<Pick<Saldo, "pagado" | "saldo">[]>();
   const completos = (todos ?? []).filter((p) => Number(p.saldo) <= 0).length;
   const adelanto = (todos ?? []).filter((p) => Number(p.saldo) > 0 && Number(p.pagado) > 0).length;
   const sinPagar = (todos ?? []).filter((p) => Number(p.saldo) > 0 && Number(p.pagado) <= 0).length;
@@ -39,6 +43,7 @@ export default async function Cobros({
     alumnosBuscados = data ?? [];
   }
   let consulta = supabase.from("pedidos_saldo").select("id, numero, alumno_id, estado, total, pagado, saldo").neq("estado", "anulado");
+  if (sede) consulta = consulta.eq("sede", sede);
   consulta = alumnosBuscados ? consulta.in("alumno_id", alumnosBuscados.map((a) => a.id)) : consulta.gt("saldo", 0);
   const { data: pedidos } = await consulta.order("numero", { ascending: false }).limit(50).returns<Saldo[]>();
 
