@@ -350,6 +350,11 @@ def _peso_tono(hue: np.ndarray, centro: float, ancho: float) -> np.ndarray:
     return np.clip(1.5 - 1.5 * dh / ancho, 0, 1)
 
 
+def _tono_rel(hue: np.ndarray) -> np.ndarray:
+    """Tono en grados con el corte en 200° (así 0..199 queda continuo para piel/dorado)."""
+    return np.where(hue > 200, hue - 360, hue)
+
+
 def birrete_solido(rgb01: np.ndarray, alpha: np.ndarray, anc: Anclajes) -> tuple[np.ndarray, np.ndarray]:
     """El birrete es tela opaca de bordes rectos. Con fondo recargado la red lo deshace;
     aquí se rehace desde el color real: azul oscuro de la toga conectado a la frente,
@@ -366,6 +371,8 @@ def birrete_solido(rgb01: np.ndarray, alpha: np.ndarray, anc: Anclajes) -> tuple
     hue, C = np.degrees(np.arctan2(b, a)) % 360, np.hypot(a, b)
     azul = (_peso_tono(hue, 298, 30) > 0.5) & (C > 25) & (L < 55)
     azul = cv2.morphologyEx(azul.astype(np.uint8), cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    cordon = mascara_dorada(lab) & (cv2.dilate(azul, np.ones((3, 3), np.uint8), iterations=int(0.02 * hc) + 1) > 0)
+    azul = azul | cordon.astype(np.uint8)
     n, et = cv2.connectedComponents(azul, connectivity=8)
     # componente que toca la frente (franja justo sobre el borde superior de la cara)
     fy0, fy1 = int(y - 0.35 * hc) - y0, int(y + 0.1 * hc) - y0
@@ -382,7 +389,7 @@ def birrete_solido(rgb01: np.ndarray, alpha: np.ndarray, anc: Anclajes) -> tuple
     comp = cv2.morphologyEx(comp, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
     cont, _ = cv2.findContours(comp, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     cont = max(cont, key=cv2.contourArea)
-    poli = cv2.approxPolyDP(cont, 0.004 * cv2.arcLength(cont, True), True)
+    poli = cv2.approxPolyDP(cont, 0.006 * cv2.arcLength(cont, True), True)
     k = 4  # antialias: dibujo a 4x y reducción
     m4 = np.zeros((comp.shape[0] * k, comp.shape[1] * k), np.uint8)
     cv2.fillPoly(m4, [poli * k + k // 2], 255, lineType=cv2.LINE_AA)
@@ -404,7 +411,7 @@ def birrete_solido(rgb01: np.ndarray, alpha: np.ndarray, anc: Anclajes) -> tuple
 
 
 def uniforme_limpio(rgb01: np.ndarray, alpha: np.ndarray, anc: Anclajes,
-                    azul_obj=(None, 78.0), dorado_obj=(78.0, 74.0), plancha: float = 0.75) -> np.ndarray:
+                    azul_obj=(None, 78.0), dorado_obj=(78.0, 74.0), plancha: float = 0.85) -> np.ndarray:
     """Toga y estola como recién planchadas, sin tocar piel ni cabello.
     1) Color: lleva el croma del azul y la luminosidad/croma del dorado a un objetivo fijo
        (la cámara los apaga y el azul se ve morado). Ganancia medida en cada foto.
@@ -414,10 +421,15 @@ def uniforme_limpio(rgb01: np.ndarray, alpha: np.ndarray, anc: Anclajes,
     lab = a_lab(rgb01)
     L, a, b = lab[..., 0], lab[..., 1], lab[..., 2]
     hue, C = np.degrees(np.arctan2(b, a)) % 360, np.hypot(a, b) + 1e-6
-    piel = cv2.dilate(mascara_piel_protegida(L.shape, anc), np.ones((9, 9), np.uint8)).astype(np.float32)
-    libre = (1 - piel) * (alpha > 0.5)
+    # la zona protegida (cara + cuello) es un óvalo y un rectángulo: si se excluye entera, la
+    # estola que cae dentro queda como un parche rectangular más apagado. Dentro de esa zona solo
+    # se protege lo que tiene color de piel (tono < 70° o croma baja), no el dorado saturado.
+    zona = cv2.GaussianBlur(mascara_piel_protegida(L.shape, anc).astype(np.float32), (0, 0), 3)
+    parecido_piel = np.maximum(np.clip((72 - _tono_rel(hue)) / 6, 0, 1), np.clip((45 - C) / 8, 0, 1))
+    libre = (1 - zona * parecido_piel) * (alpha > 0.5)
     # la piel nunca es azul: el azul no necesita protección (si no, queda un borde en el birrete)
     w_azul = _peso_tono(hue, 298, 28) * np.clip((C - 15) / 15, 0, 1) * (L < 60) * (alpha > 0.5)
+    w_azul *= 1 - zona * np.clip((40 - C) / 10, 0, 1)  # sombra azulada del cuello: no es tela
     w_oro = _peso_tono(hue, 77, 16) * np.clip((C - 30) / 12, 0, 1) * (L > 40) * libre
     w_azul, w_oro = [cv2.GaussianBlur(m.astype(np.float32), (0, 0), 1.5) for m in (w_azul, w_oro)]
 
@@ -445,7 +457,7 @@ def uniforme_limpio(rgb01: np.ndarray, alpha: np.ndarray, anc: Anclajes,
             num = cv2.GaussianBlur(Ls * ws, (0, 0), sig)
             den = cv2.GaussianBlur(ws, (0, 0), sig) + 1e-4
             return num / den
-        base = media(max(2.0, 0.35 * hc * s))   # caída general de luz de la tela
+        base = media(max(2.0, 0.6 * hc * s))   # caída general de luz de la tela
         medio = media(max(1.0, 0.012 * hc * s))  # pliegues sin la textura fina
         pliegue = cv2.resize(medio - base, (L.shape[1], L.shape[0]), interpolation=cv2.INTER_CUBIC)
         L = L - plancha * wm * pliegue
@@ -703,6 +715,14 @@ def procesar(ruta_in: str, ruta_out: str, producto: str = "15x21", ruta_alpha: s
     birrete_borroso = float(((zona > 0.1) & (zona < 0.9)).sum() / max(1, (zona > 0.1).sum()))
     if birrete_borroso > 0.15:
         enc.flags.append(f"birrete borroso ({birrete_borroso:.0%} del borde dudoso)")
+    if limpiar_uniforme and birrete.any() and borla.sum() < 0.002 * anc.cara[2] * anc.cara[3] * 10:
+        enc.flags.append("borla no encontrada")
+    lab_f = a_lab(F)
+    xs = np.abs(np.arange(alpha.shape[1])[None, :] - (x + w / 2)) > 0.9 * w
+    blanco = (alpha > 0.9) & (lab_f[..., 0] > 82) & (np.hypot(lab_f[..., 1], lab_f[..., 2]) < 12) & xs
+    blanco[:int(linea_hombros(anc))] = False
+    if blanco.sum() > 0.03 * w * h:
+        enc.flags.append("objeto blanco pegado al costado (¿cartel?)")
     if getattr(anc, "parpadeo", 0) > 0.6:
         enc.flags.append("ojos cerrados")
     qa = dict(producto=producto, dpi=dpi, lienzo_px=[enc.W, enc.H], escala=round(enc.s, 4),
