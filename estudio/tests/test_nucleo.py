@@ -45,7 +45,7 @@ def test_base_nueva_trae_sedes_y_medidas(base):
     assert [s["codigo"] for s in base.sedes()] == ["nauta", "iquitos", "iquitos2"]
     nombres = [m["nombre"] for m in base.medidas()]
     assert nombres[:4] == ["15x21", "20x30", "30x40", "Carnet 3x4"]  # favoritas primero
-    assert base.version() == 1
+    assert base.version() == 2
 
 
 def test_reabrir_no_duplica_y_hace_copia(tmp_path):

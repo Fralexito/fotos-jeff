@@ -129,6 +129,23 @@ MIGRACIONES: list[str] = [
         valor text not null
     );
     """,
+    # 2: versiones hechas con IA (el original nunca se reemplaza)
+    """
+    create table versiones_ia (
+        id integer primary key,
+        foto_id integer not null references fotos(id) on delete cascade,
+        ruta text not null,
+        recetas text not null default '[]',
+        pedido_libre text not null default '',
+        proveedor text not null,
+        modelo text not null default '',
+        costo_usd real not null default 0,
+        verificacion text not null default '{}',
+        aprobada_rasgos integer not null default 0,
+        creada_en text not null default (datetime('now','localtime'))
+    );
+    alter table fotos add column version_ia_id integer references versiones_ia(id) on delete set null;
+    """,
 ]
 
 SEDES_INICIALES = [("nauta", "Nauta"), ("iquitos", "Iquitos (Liz)"), ("iquitos2", "Iquitos (Dan)")]
