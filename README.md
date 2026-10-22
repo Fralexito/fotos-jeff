@@ -34,6 +34,24 @@ pip install -r requirements.txt
 python pipeline_fotos.py foto.jpg salida.jpg --producto 15x21
 ```
 
+## Panel de gestión (`/panel`)
+
+CRM + ERP del estudio: colegios, campañas, alumnos, pedidos, cobros y catálogo.
+
+| Rol (`perfiles.rol`) | Ve |
+|---|---|
+| `dueno` | Todo: inicio con lo cobrado y por cobrar, cobros, catálogo |
+| `operador` | Inicio, colegios y alumnos, pedidos y cobros |
+| `fotografo` | Inicio y colegios/alumnos (sin dinero) |
+
+Dar acceso a una persona:
+
+1. Supabase > Authentication > Users > *Add user* (correo y contraseña).
+2. En el SQL Editor: `insert into perfiles (id, nombre, rol) values ('<id del usuario>', 'Nombre', 'operador');`
+
+Los pagos en efectivo quedan confirmados al anotarlos; los de Yape y Plin quedan *por verificar* hasta que
+alguien confirme en Cobros que llegaron al celular del negocio.
+
 ## Despliegue
 
 - Web: Vercel, conectado a este repositorio.
