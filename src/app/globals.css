@@ -1307,3 +1307,29 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 .simple-pago .metodos button { min-width: 0; padding: 0 6px; }
 .simple-fila[open] .cobrar { font-size: 0; }
 .simple-fila[open] .cobrar::after { content: "Cerrar"; font-size: 15px; }
+.simple-volver { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px; font-size: 17px; font-weight: 600; color: var(--brand); text-decoration: none; }
+.simple-volver svg { width: 22px; height: 22px; margin-left: -6px; }
+.simple-item { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm); text-decoration: none; color: var(--ink); transition: transform 160ms var(--ease-out), border-color 160ms ease; }
+a.simple-item:hover { border-color: var(--brand); }
+a.simple-item:active { transform: scale(.98); }
+.simple-item .quien { flex: 1; display: grid; min-width: 0; }
+.simple-item .quien b { font-size: 19px; overflow: hidden; text-overflow: ellipsis; }
+.simple-item .quien small { font-size: 15px; color: var(--muted); }
+.simple-item .valor { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.simple-item .valor.debe { color: var(--warn); }
+.simple-item .valor.bien { color: var(--good); }
+.simple-item .valor.suave { color: var(--muted); font-weight: 600; font-size: 16px; }
+.simple-item .flecha { width: 22px; height: 22px; color: var(--muted); flex: none; }
+.simple-numeros .simple-num { display: grid; gap: 6px; padding: 24px 26px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.simple-numeros b.neutro { color: var(--ink); }
+.simple-acciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.simple-acciones .btn, .simple-acciones button.btn { min-height: 64px; font-size: 19px; font-weight: 700; justify-content: center; border-radius: 16px; width: 100%; }
+@media (max-width: 640px) {
+  .simple-item .quien b, .simple-item .valor { font-size: 17px; }
+  .simple-numeros .simple-num { padding: 18px 20px; grid-template-columns: 1fr auto; align-items: center; }
+}
+.simple-cierre { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 14px; }
+.simple-cierre .field { font-size: 17px; }
+.simple-cierre input { font-size: 20px; min-height: 52px; }
+.simple-cierre .btn { min-height: 60px; font-size: 18px; }
+.simple-dia { display: grid; gap: 12px; }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight, HandCoins, Search, ShoppingBag } from "lucide-react";
 import { puede, requirePerfil } from "@/lib/auth";
 import { Avatar, Empty, PageHeader } from "@/components/ui";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
 
 type AlumnoEncontrado = {
   id: string;
@@ -36,6 +37,32 @@ export default async function Buscar({ searchParams }: { searchParams: Promise<{
 
   const nCol = colegios?.data?.length ?? 0;
   const nAlu = alumnos?.data?.length ?? 0;
+
+  // Vista sencilla: un buscador grande y una sola lista; tocar a alguien abre su ficha.
+  if (perfil.preferencias.vista === "sencilla") {
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo="Buscar" sub={texto ? `${nCol + nAlu} ${nCol + nAlu === 1 ? "resultado" : "resultados"} para “${texto}”` : "Escribe el apellido del alumno o el colegio"} />
+        <form action="/panel/buscar" className="bigsearch" role="search">
+          <Search className="i" />
+          <input name="q" defaultValue={texto} autoFocus={!texto} placeholder="Apellido o colegio" aria-label="Buscar" />
+          <button className="btn lg" type="submit">Buscar</button>
+        </form>
+        {texto && (
+          <SimpleLista
+            vacio="No encontramos nada. Prueba solo con el apellido."
+            filas={[
+              ...(colegios?.data ?? []).map((c) => ({ key: c.id, href: `/panel/colegios/${c.id}`, titulo: c.nombre, sub: `Colegio · ${c.ciudad}` })),
+              ...(alumnos?.data ?? []).map((a) => ({
+                key: a.id, href: `/panel/alumnos/${a.id}`, titulo: `${a.apellidos}, ${a.nombres}`,
+                sub: [a.campanas?.colegios?.nombre, a.grado && `${a.grado} ${a.seccion ?? ""}`].filter(Boolean).join(" · "),
+              })),
+            ]}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <>

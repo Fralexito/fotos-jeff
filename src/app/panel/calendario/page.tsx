@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui";
 import { dia, hoyLima } from "@/lib/formato";
 import { filtroSede } from "@/lib/sedes";
 import { programarCampana } from "../actions";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
 
 type Campana = { id: string; nombre: string; estado: string; fecha_captura: string | null; fecha_entrega: string | null; colegios: { nombre: string } | null };
 type Evento = { fecha: string; tipo: "toma" | "entrega" | "tarea"; titulo: string; detalle: string; href: string };
@@ -68,6 +69,29 @@ export default async function Calendario({ searchParams }: { searchParams: Promi
   const manana = iso(new Date(new Date(hoy + "T12:00:00Z").getTime() + 86400000));
   const nombreDia = (f: string) =>
     f === hoy ? "Hoy" : f === manana ? "Mañana" : new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(f + "T12:00:00Z"));
+
+  // Vista sencilla: sin cuadrícula del mes, solo lo que viene día por día.
+  if (perfil.preferencias.vista === "sencilla") {
+    const fechas = [...new Set(agenda.map((e) => e.fecha))];
+    const PALABRA = { toma: "Tomar fotos", entrega: "Entregar fotos", tarea: "Recordar" };
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo="Lo que viene" sub="Las próximas dos semanas" />
+        {fechas.length === 0 && <p className="simple-vacio">No hay nada programado.</p>}
+        {fechas.map((f) => (
+          <div key={f} className="simple-dia">
+            <h2 className="simple-sub">{nombreDia(f).charAt(0).toUpperCase() + nombreDia(f).slice(1)}</h2>
+            <SimpleLista
+              vacio=""
+              filas={agenda.filter((e) => e.fecha === f).map((e, i) => ({
+                key: `${f}-${i}`, href: e.href, titulo: e.titulo, sub: `${PALABRA[e.tipo]}${e.detalle ? ` · ${e.detalle}` : ""}`,
+              }))}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>

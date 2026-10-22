@@ -6,11 +6,12 @@ import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
 import { Empty, PageHeader } from "@/components/ui";
 import { Dona } from "@/components/graficos";
-import { CARGO, ESTADO_PEDIDO, TIPO_CAMPANA, fecha, whatsapp } from "@/lib/formato";
+import { CARGO, ESTADO_PEDIDO, S, TIPO_CAMPANA, fecha, whatsapp } from "@/lib/formato";
 import { Avatar, WhatsApp } from "@/components/ui";
 import { FormActividad, Historial } from "@/components/historial";
 import { crearContacto } from "../../acciones-erp";
 import { cambiarSedeColegio, crearCampana } from "../../actions";
+import { SimpleLista, SimpleNumeros, SimpleTitulo } from "@/components/simple";
 import { NOMBRE_SEDE, NOMBRE_ZONA, SEDES, ZONAS } from "@/lib/sedes";
 
 const ESTADO: Record<string, [string, string]> = {
@@ -55,6 +56,32 @@ export default async function Colegio({
   const faltaCol = (saldos ?? []).reduce((t, x) => t + Number(x.saldo), 0);
   const alumnosCol = campanas.reduce((t, c) => t + (c.alumnos[0]?.count ?? 0), 0);
   const dia = (d: string | null) => (d ? fecha(d + "T12:00:00-05:00") : "—");
+
+  // Vista sencilla: cuánto se cobró, cuánto falta y sus campañas.
+  if (perfil.preferencias.vista === "sencilla") {
+    const tel = colegio.contacto_telefono as string | null;
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo={colegio.nombre} volver={{ href: "/panel/colegios", texto: "Colegios" }} sub={`${alumnosCol} alumnos · ${colegio.ciudad}`} />
+        {saldos && saldos.length > 0 && (
+          <SimpleNumeros items={[{ texto: "Ya pagaron", valor: S(cobradoCol), tono: "bien" }, { texto: "Falta cobrar", valor: S(faltaCol), tono: "debe" }]} />
+        )}
+        <h2 className="simple-sub">Campañas</h2>
+        <SimpleLista
+          vacio="Este colegio aún no tiene campañas."
+          filas={campanas.map((c) => ({
+            key: c.id, href: `/panel/campanas/${c.id}`, titulo: c.nombre,
+            sub: `${c.alumnos[0]?.count ?? 0} alumnos · ${(ESTADO[c.estado] ?? [c.estado])[0]}`,
+          }))}
+        />
+        {tel && (
+          <div className="simple-acciones">
+            <a className="btn wa" href={whatsapp(tel, `Hola ${(colegio.contacto_nombre ?? "").split(" ")[0]}, le saluda Fotos Jefferson.`) ?? "#"}>Escribir a {colegio.contacto_nombre ?? "el contacto"}</a>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>

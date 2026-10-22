@@ -6,6 +6,7 @@ import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
 import { Avatar, Empty, PageHeader } from "@/components/ui";
 import { TIPO_CAMPANA } from "@/lib/formato";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
 import { agregarAlumno, importarAlumnos } from "../../actions";
 
 type Alumno = {
@@ -44,6 +45,22 @@ export default async function Campana({
     salones.set(k, [...(salones.get(k) ?? []), a]);
   }
   const hacePedidos = puede(perfil, "pedidos");
+
+  // Vista sencilla: salones con sus alumnos, cada uno lleva a su ficha.
+  if (perfil.preferencias.vista === "sencilla") {
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo={campana.nombre} volver={{ href: `/panel/colegios/${colegio.id}`, texto: colegio.nombre }} sub={`${alumnos?.length ?? 0} alumnos`} />
+        {salones.size === 0 && <p className="simple-vacio">Todavía no hay alumnos en esta lista.</p>}
+        {[...salones].map(([salon, lista]) => (
+          <section key={salon} className="simple">
+            <h2 className="simple-sub">{salon} <small className="muted">· {lista.length}</small></h2>
+            <SimpleLista vacio="" filas={lista.map((a) => ({ key: a.id, href: `/panel/alumnos/${a.id}`, titulo: `${a.apellidos}, ${a.nombres}`, sub: a.apoderado_nombre ?? undefined }))} />
+          </section>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>

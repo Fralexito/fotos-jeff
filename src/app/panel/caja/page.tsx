@@ -8,6 +8,7 @@ import { Modal } from "@/components/modal";
 import { Empty, PageHeader, Tabs } from "@/components/ui";
 import { NOMBRE_SEDE, SEDES, filtroSede } from "@/lib/sedes";
 import { cerrarCaja, registrarMovimiento } from "../acciones-erp";
+import { SimpleLista, SimpleNumeros, SimpleTitulo } from "@/components/simple";
 
 const METODO: Record<string, string> = { efectivo: "Efectivo", yape: "Yape", plin: "Plin", transferencia: "Transferencia", tarjeta: "Tarjeta" };
 const hora = (iso: string) => new Intl.DateTimeFormat("es-PE", { hour: "numeric", minute: "2-digit", timeZone: "America/Lima" }).format(new Date(iso));
@@ -61,6 +62,46 @@ export default async function Caja({ searchParams }: { searchParams: Promise<{ f
       <div className="form-foot"><button className="btn" type="submit">Guardar</button></div>
     </form>
   );
+
+  // Vista sencilla: cuánto entró, cuánto salió, cuánto debe haber en el cajón y cerrar.
+  if (perfil.preferencias.vista === "sencilla") {
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo={fecha === hoy ? "Caja de hoy" : titulo} sub={`Sede ${NOMBRE_SEDE[sede]}`} />
+        <Aviso {...aviso} />
+        <SimpleNumeros items={[
+          { texto: "Entró", valor: S(r.ingresos), tono: "bien" },
+          { texto: "Salió", valor: S(r.egresos), tono: "debe" },
+          { texto: "En el cajón", valor: S(r.efectivo) },
+        ]} />
+        <div className="simple-acciones">
+          <Modal abrir={nuevo === "1"} label="Anotar un gasto" title="Anotar un gasto" icon={<Receipt className="i" />}>{formMovimiento("egreso")}</Modal>
+        </div>
+        <h2 className="simple-sub">Lo de hoy</h2>
+        <SimpleLista
+          vacio="Todavía no hay nada anotado hoy."
+          filas={[...filas].reverse().map((x) => ({
+            key: x.id, titulo: x.concepto, sub: `${hora(x.hora)} · ${METODO[x.metodo]}`,
+            valor: `${x.tipo === "egreso" ? "−" : "+"}${S(x.monto)}`, tono: x.tipo === "egreso" ? "debe" : "bien",
+          }))}
+        />
+        <h2 className="simple-sub">Cerrar la caja</h2>
+        {r.cierre ? (
+          <p className="simple-vacio">
+            {Number(r.cierre.diferencia) === 0 ? "Caja cerrada. Cuadró exacto." : `Caja cerrada. ${Number(r.cierre.diferencia) > 0 ? "Sobró" : "Faltó"} ${S(Math.abs(Number(r.cierre.diferencia)))}.`}
+          </p>
+        ) : (
+          <form action={cerrarCaja} className="form simple-cierre">
+            <input type="hidden" name="fecha" value={fecha} />
+            <input type="hidden" name="sede" value={sede} />
+            <input type="hidden" name="volver" value={volver} />
+            <label className="field">¿Cuánto efectivo contaste? (S/)<input name="efectivo_contado" inputMode="decimal" required placeholder="0.00" /></label>
+            <button className="btn block" type="submit"><Lock className="i" /> Cerrar caja</button>
+          </form>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
