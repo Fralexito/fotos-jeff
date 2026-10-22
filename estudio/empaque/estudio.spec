@@ -12,9 +12,9 @@ datas = [(os.path.join(REPO, "pipeline", "pipeline_fotos.py"), "pipeline"),
          (os.path.join(ESTUDIO, "motor_servidor.py"), "."),
          (os.path.join(AQUI, "icono.png"), "empaque")]
 binaries = []
-hidden = ["pipeline_fotos", "PIL.ImageCms", "openpyxl", "onnxruntime"]
+hidden = ["pipeline_fotos", "PIL.ImageCms", "openpyxl", "onnxruntime", "scipy._cyutility"]
 hidden += collect_submodules("keyring.backends") + collect_submodules("fj_estudio")
-for paquete in ("mediapipe", "pymatting", "numba", "llvmlite", "onnxruntime"):
+for paquete in ("mediapipe", "pymatting", "numba", "llvmlite", "onnxruntime", "scipy"):
     d, b, h = collect_all(paquete)
     datas += d
     binaries += b

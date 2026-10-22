@@ -7,6 +7,7 @@ pillow==11.0.0
 numpy==1.26.4
 opencv-python-headless==4.10.0.84
 pymatting==1.1.12
+scipy==1.14.1  # versiones nuevas usan scipy._cyutility, que PyInstaller 6.10 no detecta
 mediapipe==0.10.14
 matplotlib==3.9.2  # mediapipe lo importa al cargar
 onnxruntime==1.19.2
