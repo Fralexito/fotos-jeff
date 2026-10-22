@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { HandCoins, Package, Plus, School, Search, Settings } from "lucide-react";
+import { Boxes, HandCoins, Handshake, ListTodo, Package, Plus, Receipt, School, Search, Settings } from "lucide-react";
 
 // Barra superior: búsqueda en todo el sistema (atajo "/"), menú Nuevo y acceso a Ajustes.
-export function Topbar({ cobros, catalogo }: { cobros: boolean; catalogo: boolean }) {
+export function Topbar({ cobros, catalogo, clientes }: { cobros: boolean; catalogo: boolean; clientes: boolean }) {
   const router = useRouter();
   const ruta = usePathname();
   const params = useSearchParams();
@@ -63,6 +63,18 @@ export function Topbar({ cobros, catalogo }: { cobros: boolean; catalogo: boolea
             <Plus className="i" /> <span className="hide-sm">Nuevo</span>
           </button>
           <div className="menu" role="menu" data-open={abierto || undefined}>
+            {clientes && (
+              <>
+                <Link role="menuitem" href="/panel/clientes?nuevo=oportunidad">
+                  <span className="ico"><Handshake className="i" /></span>
+                  <span><b>Oportunidad</b><small>Un colegio por conseguir</small></span>
+                </Link>
+                <Link role="menuitem" href="/panel/clientes?vista=tareas&nuevo=tarea">
+                  <span className="ico"><ListTodo className="i" /></span>
+                  <span><b>Recordatorio</b><small>Llamar, visitar, cobrar…</small></span>
+                </Link>
+              </>
+            )}
             <Link role="menuitem" href="/panel/colegios?nuevo=1">
               <span className="ico"><School className="i" /></span>
               <span><b>Colegio</b><small>Registrar un colegio nuevo</small></span>
@@ -73,6 +85,16 @@ export function Topbar({ cobros, catalogo }: { cobros: boolean; catalogo: boolea
                 <span><b>Pago</b><small>Buscar al alumno y cobrar</small></span>
               </Link>
             )}
+            {cobros && (
+              <Link role="menuitem" href="/panel/caja?nuevo=1">
+                <span className="ico"><Receipt className="i" /></span>
+                <span><b>Gasto</b><small>Anotar una salida de dinero</small></span>
+              </Link>
+            )}
+            <Link role="menuitem" href="/panel/inventario?nuevo=1">
+              <span className="ico"><Boxes className="i" /></span>
+              <span><b>Material</b><small>Papel, marcos, tinta…</small></span>
+            </Link>
             {catalogo && (
               <Link role="menuitem" href="/panel/catalogo?nuevo=1">
                 <span className="ico"><Package className="i" /></span>

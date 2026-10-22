@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarPlus, ChevronRight, FolderOpen } from "lucide-react";
+import { CalendarPlus, ChevronRight, FolderOpen, UserPlus } from "lucide-react";
 import { requirePerfil } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
 import { Empty, PageHeader } from "@/components/ui";
-import { TIPO_CAMPANA, fecha } from "@/lib/formato";
+import { CARGO, TIPO_CAMPANA, fecha, whatsapp } from "@/lib/formato";
+import { Avatar, WhatsApp } from "@/components/ui";
+import { FormActividad, Historial } from "@/components/historial";
+import { crearContacto } from "../../acciones-erp";
 import { crearCampana } from "../../actions";
 
 const ESTADO: Record<string, [string, string]> = {
@@ -32,6 +35,11 @@ export default async function Colegio({
     .order("anio", { referencedTable: "campanas", ascending: false })
     .single();
   if (!colegio) notFound();
+  const [{ data: contactos }, { data: actividades }] = await Promise.all([
+    supabase.from("contactos").select("id, nombre, cargo, telefono").eq("colegio_id", id).order("nombre"),
+    supabase.from("actividades").select("id, tipo, detalle, creado_en, perfiles(nombre)").eq("colegio_id", id).order("creado_en", { ascending: false }).limit(30),
+  ]);
+  const volver = `/panel/colegios/${id}`;
 
   const campanas = (colegio.campanas ?? []) as {
     id: string; nombre: string; tipo: string; anio: number; estado: string;
@@ -107,6 +115,52 @@ export default async function Colegio({
               <div><dt>Dirección</dt><dd>{colegio.direccion ?? "—"}</dd></div>
             </dl>
           </div>
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-head"><div><h2>Historial</h2><p>Llamadas, visitas y acuerdos con el colegio.</p></div></div>
+          <div className="card-body"><FormActividad colegioId={colegio.id} volver={volver} /></div>
+          <Historial items={actividades ?? []} />
+        </div>
+        <div className="card">
+          <div className="card-head">
+            <h2>Contactos</h2>
+            <Modal label="Agregar" title="Nuevo contacto" icon={<UserPlus className="i" />} variant="secondary">
+              <form action={crearContacto} className="form">
+                <input type="hidden" name="colegio_id" value={colegio.id} />
+                <input type="hidden" name="volver" value={volver} />
+                <div className="fields">
+                  <label className="field">Nombre<input name="nombre" required /></label>
+                  <label className="field">
+                    Cargo
+                    <select name="cargo" defaultValue="director">
+                      {Object.entries(CARGO).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+                    </select>
+                  </label>
+                  <label className="field">Celular<input name="telefono" type="tel" /></label>
+                  <label className="field">Correo<input name="email" type="email" /></label>
+                </div>
+                <div className="form-foot"><button className="btn" type="submit">Guardar contacto</button></div>
+              </form>
+            </Modal>
+          </div>
+          {(contactos ?? []).length === 0 ? (
+            <p className="muted-text" style={{ padding: "0 20px 20px" }}>Agrega al director, tutores o comité.</p>
+          ) : (
+            <div className="list">
+              {(contactos ?? []).map((c) => (
+                <div className="item" key={c.id}>
+                  <div className="main">
+                    <Avatar name={c.nombre} />
+                    <div><div className="title">{c.nombre}</div><div className="meta">{CARGO[c.cargo]}{c.telefono && ` · ${c.telefono}`}</div></div>
+                  </div>
+                  <div className="end"><WhatsApp href={whatsapp(c.telefono, `Hola ${c.nombre.split(" ")[0]}, le saluda Fotos Jeff.`)} /></div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>

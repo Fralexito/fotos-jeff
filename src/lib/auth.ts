@@ -11,6 +11,9 @@ export const PERMISOS = {
   cobros: ["dueno", "operador"],
   catalogo: ["dueno"],
   pedidos: ["dueno", "operador"],
+  caja: ["dueno", "operador"],
+  reportes: ["dueno", "operador"],
+  clientes: ["dueno", "operador"],
 } satisfies Record<string, Rol[]>;
 
 // Devuelve el perfil del personal o saca al usuario. Con `roles`, además exige uno de esos roles.

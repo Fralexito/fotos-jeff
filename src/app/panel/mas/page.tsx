@@ -1,0 +1,34 @@
+import Link from "next/link";
+import { Boxes, ChartColumn, Factory, Handshake, LayoutDashboard, Package, School, Settings, Vault, Wallet } from "lucide-react";
+import { puede, requirePerfil } from "@/lib/auth";
+import { PageHeader } from "@/components/ui";
+
+// Todas las secciones en tarjetas grandes (en celular, la barra de abajo solo muestra cinco).
+export default async function Mas() {
+  const { perfil } = await requirePerfil();
+  const secciones = [
+    { href: "/panel", t: "Inicio", d: "Resumen del día", I: LayoutDashboard, ok: true },
+    { href: "/panel/clientes", t: "Clientes", d: "Embudo, contactos y recordatorios", I: Handshake, ok: puede(perfil, "clientes") },
+    { href: "/panel/colegios", t: "Colegios y alumnos", d: "Campañas y listas", I: School, ok: true },
+    { href: "/panel/produccion", t: "Producción", d: "Edición, impresión y entregas", I: Factory, ok: true },
+    { href: "/panel/cobros", t: "Cobros", d: "Quién pagó y quién debe", I: Wallet, ok: puede(perfil, "cobros") },
+    { href: "/panel/caja", t: "Caja", d: "Ingresos, gastos y cierre", I: Vault, ok: puede(perfil, "caja") },
+    { href: "/panel/catalogo", t: "Catálogo", d: "Productos y precios", I: Package, ok: puede(perfil, "catalogo") },
+    { href: "/panel/inventario", t: "Inventario", d: "Papel, marcos y tinta", I: Boxes, ok: true },
+    { href: "/panel/reportes", t: "Reportes", d: "Ventas, cobros y deudores", I: ChartColumn, ok: puede(perfil, "reportes") },
+    { href: "/panel/ajustes", t: "Ajustes", d: "Colores, letra y perfil", I: Settings, ok: true },
+  ].filter((s) => s.ok);
+  return (
+    <>
+      <PageHeader title="Todas las secciones" />
+      <div className="quick">
+        {secciones.map(({ href, t, d, I }) => (
+          <Link key={href} href={href}>
+            <span className="ico"><I /></span>
+            <span><b>{t}</b><span>{d}</span></span>
+          </Link>
+        ))}
+      </div>
+    </>
+  );
+}
