@@ -1,16 +1,23 @@
 import Link from "next/link";
-import { CalendarDays, ChevronRight, CircleAlert, HandCoins, PackageCheck, School, Wallet } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronRight, CircleAlert, HandCoins, PackageCheck, School, Sparkles, Wallet } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
-import { S, TIPO_CAMPANA, fecha, inicioDeHoyLima, saludo } from "@/lib/formato";
-import { Avatar, Empty, PageHeader } from "@/components/ui";
+import { S, TIPO_CAMPANA, fecha, saludo } from "@/lib/formato";
+import { Avatar, Empty } from "@/components/ui";
+import { Contador } from "@/components/contador";
+import { Sparkline } from "@/components/sparkline";
 
 export default async function Inicio() {
   const { supabase, perfil } = await requirePerfil();
   const veDinero = puede(perfil, "cobros");
 
-  const [hoy, saldos, listos, porVerificar, proximas] = await Promise.all([
+  // Últimos 7 días (hoy incluido) en hora de Lima, para el total de hoy y el mini gráfico.
+  const diaLima = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(d);
+  const dias = Array.from({ length: 7 }, (_, i) => diaLima(new Date(Date.now() - (6 - i) * 86400000)));
+  const desde = `${dias[0]}T00:00:00-05:00`;
+
+  const [semana, saldos, listos, porVerificar, proximas] = await Promise.all([
     veDinero
-      ? supabase.from("pagos").select("monto").eq("estado", "confirmado").gte("creado_en", inicioDeHoyLima())
+      ? supabase.from("pagos").select("monto, creado_en").eq("estado", "confirmado").gte("creado_en", desde)
       : null,
     veDinero ? supabase.from("pedidos_saldo").select("saldo").neq("estado", "anulado").gt("saldo", 0) : null,
     supabase.from("pedidos").select("id", { count: "exact", head: true }).eq("estado", "en_impresion"),
@@ -25,7 +32,14 @@ export default async function Inicio() {
       .limit(5),
   ]);
 
-  const cobradoHoy = (hoy?.data ?? []).reduce((s, p) => s + Number(p.monto), 0);
+  const porDia = dias.map((d) =>
+    (semana?.data ?? []).filter((p) => diaLima(new Date(p.creado_en)) === d).reduce((s, p) => s + Number(p.monto), 0),
+  );
+  const cobradoHoy = porDia[6];
+  const cobradoSemana = porDia.reduce((a, b) => a + b, 0);
+  const letras = dias.map((d, i) =>
+    i === 6 ? "Hoy" : new Intl.DateTimeFormat("es-PE", { weekday: "narrow", timeZone: "UTC" }).format(new Date(d + "T12:00:00Z")),
+  );
   const porCobrar = (saldos?.data ?? []).reduce((s, p) => s + Number(p.saldo), 0);
   const conSaldo = saldos?.data?.length ?? 0;
   const nVerificar = porVerificar?.count ?? 0;
@@ -34,45 +48,65 @@ export default async function Inicio() {
 
   return (
     <>
-      <PageHeader
-        title={`${saludo()}, ${perfil.nombre.split(" ")[0]}`}
-        subtitle={hoyTexto}
-        actions={
-          veDinero && (
-            <Link className="btn" href="/panel/cobros">
-              <HandCoins className="i" /> Registrar un pago
+      <section className="hero">
+        <div className="hero-main">
+          <p className="hero-date">{hoyTexto}</p>
+          <h1>{saludo()}, {perfil.nombre.split(" ")[0]}</h1>
+          {veDinero ? (
+            <>
+              <div className="hero-label">Cobrado hoy</div>
+              <div className="hero-val"><Contador valor={cobradoHoy} soles /></div>
+              <div className="hero-sub">{S(cobradoSemana)} en los últimos 7 días</div>
+            </>
+          ) : (
+            <p className="hero-sub">Este es el resumen del estudio para hoy.</p>
+          )}
+          <div className="hero-actions">
+            {veDinero && (
+              <Link className="btn light" href="/panel/cobros">
+                <HandCoins className="i" /> Registrar un pago
+              </Link>
+            )}
+            <Link className="btn glass" href="/panel/colegios">
+              <School className="i" /> Colegios
             </Link>
-          )
-        }
-      />
+          </div>
+        </div>
+        {veDinero && (
+          <div className="hero-chart">
+            <Sparkline datos={porDia} etiquetas={letras} />
+          </div>
+        )}
+        <Sparkles className="hero-deco" aria-hidden />
+      </section>
 
       <div className="kpis">
         {veDinero && (
-          <>
-            <div className="kpi">
-              <div className="top">Cobrado hoy <span className="ico"><Wallet className="i" /></span></div>
-              <div className="val">{S(cobradoHoy)}</div>
-              <div className="sub">Pagos confirmados desde las 0:00</div>
-            </div>
-            <Link className="kpi" href="/panel/cobros">
-              <div className="top">Por cobrar <span className="ico warn"><HandCoins className="i" /></span></div>
-              <div className="val">{S(porCobrar)}</div>
-              <div className="sub">{conSaldo} {conSaldo === 1 ? "pedido con saldo" : "pedidos con saldo"}</div>
-            </Link>
-          </>
+          <Link className="kpi" href="/panel/cobros">
+            <div className="top">Por cobrar <span className="ico warn"><HandCoins className="i" /></span></div>
+            <div className="val"><Contador valor={porCobrar} soles /></div>
+            <div className="sub">{conSaldo} {conSaldo === 1 ? "pedido con saldo" : "pedidos con saldo"} <ArrowUpRight className="i go" /></div>
+          </Link>
         )}
         <div className="kpi">
           <div className="top">Listos para entregar <span className="ico info"><PackageCheck className="i" /></span></div>
-          <div className="val">{listos.count ?? 0}</div>
+          <div className="val"><Contador valor={listos.count ?? 0} /></div>
           <div className="sub">Pedidos ya impresos</div>
         </div>
-        {nVerificar > 0 && (
-          <Link className="kpi alert" href="/panel/cobros#verificar">
-            <div className="top">Pagos por verificar <span className="ico bad"><CircleAlert className="i" /></span></div>
-            <div className="val">{nVerificar}</div>
-            <div className="sub">Yape o Plin por confirmar</div>
-          </Link>
-        )}
+        {veDinero &&
+          (nVerificar > 0 ? (
+            <Link className="kpi alert" href="/panel/cobros#verificar">
+              <div className="top">Pagos por verificar <span className="ico bad"><CircleAlert className="i" /></span></div>
+              <div className="val"><Contador valor={nVerificar} /></div>
+              <div className="sub">Yape o Plin por confirmar <ArrowUpRight className="i go" /></div>
+            </Link>
+          ) : (
+            <div className="kpi">
+              <div className="top">Pagos por verificar <span className="ico"><Wallet className="i" /></span></div>
+              <div className="val">0</div>
+              <div className="sub">Todo al día</div>
+            </div>
+          ))}
       </div>
 
       <div className="card">
