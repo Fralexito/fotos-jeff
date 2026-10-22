@@ -5,12 +5,12 @@ import {
 import Lenis from 'lenis'
 
 /* ---------- datos (precios, contacto e historia son de ejemplo) ---------- */
-const WA = '51900000000'
+const WA = '51901009717'
 // números de ejemplo: reemplazar por el WhatsApp real de cada sede
 const SEDES = {
-  nauta: { n: 'Nauta', enc: 'Jefferson Gómez Tuesta', wa: '51900000000', tel: '900 000 000' },
-  iquitos: { n: 'Iquitos', enc: 'Liz Nery Gómez Ríos', wa: '51900000001', tel: '900 000 001' },
-  iquitos2: { n: 'Iquitos', enc: 'Dan Jefferson Gómez Ríos', wa: '51900000002', tel: '900 000 002' },
+  nauta: { n: 'Nauta', enc: 'Jefferson Gómez Tuesta', wa: '51901009717', tel: '901 009 717' },
+  iquitos: { n: 'Iquitos', enc: 'Liz Nery Gómez Ríos', wa: '51927966733', tel: '927 966 733' },
+  iquitos2: { n: 'Iquitos', enc: 'Dan Jefferson Gómez Ríos', wa: '51931581328', tel: '931 581 328' },
 }
 const ZONAS = ['En la ciudad', 'Carretera Iquitos–Nauta', 'Pueblo o comunidad por el río']
 const sedeLine = (sede, z, lugar) => `[Sede ${SEDES[sede].n} · ${SEDES[sede].enc}] ` + (z && z !== ZONAS[0] ? `Pido desde: ${z}${lugar ? ` (${lugar.trim()})` : ''}. ` : '')
@@ -168,11 +168,11 @@ function Header({ route }) {
     <motion.header className={`hdr ${hide && !open ? 'hide' : ''}`} data-open={open ? '' : undefined}
       initial={{ y: '-110%' }} animate={{ y: 0 }} transition={{ duration: 0.9, delay: 0.1, ease: EASE }}>
       <div className="util">
-        <span className="ph"><Phone /><span>Sede Nauta<br /><b>{SEDES.nauta.tel}</b> (ejemplo)</span></span>
+        <span className="ph"><Phone /><span>Sede Nauta<br /><b>{SEDES.nauta.tel}</b></span></span>
         <span className="vr" />
-        <span className="ph ph2"><Phone /><span>Iquitos · Liz Nery<br /><b>{SEDES.iquitos.tel}</b> (ejemplo)</span></span>
+        <span className="ph ph2"><Phone /><span>Iquitos · Liz Nery<br /><b>{SEDES.iquitos.tel}</b></span></span>
         <span className="vr ph2" />
-        <span className="ph ph2"><Phone /><span>Iquitos · Dan Jefferson<br /><b>{SEDES.iquitos2.tel}</b> (ejemplo)</span></span>
+        <span className="ph ph2"><Phone /><span>Iquitos · Dan Jefferson<br /><b>{SEDES.iquitos2.tel}</b></span></span>
         <nav className="unav" aria-label="Accesos">
           <Link to="proceso" className="opt">Cómo trabajamos</Link>
           <Link to="nosotros" className="opt">Nosotros</Link>
