@@ -6,6 +6,7 @@ import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
 import { Avatar, Empty, PageHeader, Tabs, WhatsApp } from "@/components/ui";
 import { alternarTarea, crearContacto, crearOportunidad, crearTarea, moverOportunidad } from "../acciones-erp";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
 
 const COLUMNAS = ["nuevo", "contactado", "reunion", "propuesta", "ganado"] as const;
 
@@ -25,7 +26,7 @@ export default async function Clientes({
   searchParams: Promise<{ vista?: string; nuevo?: string; ok?: string; error?: string; perdidos?: string }>;
 }) {
   const { vista = "embudo", nuevo, perdidos, ...aviso } = await searchParams;
-  const { supabase } = await requirePerfil(PERMISOS.clientes);
+  const { supabase, perfil } = await requirePerfil(PERMISOS.clientes);
   const hoy = hoyLima();
 
   const [{ data: ops }, { data: tareas }, { data: contactos }, { data: colegios }, { data: equipo }] = await Promise.all([
@@ -87,6 +88,43 @@ export default async function Clientes({
       <div className="form-foot"><button className="btn" type="submit">Agregar al embudo</button></div>
     </form>
   );
+
+  // Vista sencilla: lo que hay que hacer y los colegios que se están buscando.
+  if (perfil.preferencias.vista === "sencilla") {
+    const cuando = (f: string) => (f < hoy ? "Atrasado" : f === hoy ? "Hoy" : dia(f));
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo="Clientes" sub="Lo que hay que hacer y los colegios por conseguir" />
+        <Aviso {...aviso} />
+        <h2 className="simple-sub">Para hacer</h2>
+        {pendientes.length === 0 ? <p className="simple-vacio">Nada pendiente.</p> : (
+          <div className="simple-lista">
+            {pendientes.slice(0, 15).map((t) => (
+              <div key={t.id} className="simple-item simple-paso">
+                <span className="quien"><b>{t.titulo}</b><small>{[cuando(t.vence), t.colegios?.nombre ?? t.oportunidades?.titulo].filter(Boolean).join(" · ")}</small></span>
+                <form action={alternarTarea}>
+                  <input type="hidden" name="id" value={t.id} />
+                  <input type="hidden" name="hecha" value="1" />
+                  <input type="hidden" name="volver" value="/panel/clientes" />
+                  <button className="btn secondary">Ya lo hice</button>
+                </form>
+              </div>
+            ))}
+          </div>
+        )}
+        <h2 className="simple-sub">Colegios por conseguir</h2>
+        <SimpleLista
+          vacio="No hay colegios en camino."
+          filas={abiertas.map((o) => ({
+            key: o.id, titulo: o.colegios?.nombre ?? o.colegio_nombre ?? o.titulo,
+            sub: [ETAPA[o.etapa]?.[0] ?? o.etapa, o.contacto_nombre].filter(Boolean).join(" · "),
+            valor: o.monto_estimado ? S(o.monto_estimado) : undefined, tono: "suave" as const,
+            href: whatsapp(o.telefono, `Hola ${(o.contacto_nombre ?? "").split(" ")[0]}, le saluda Fotos Jefferson.`) ?? undefined,
+          }))}
+        />
+      </div>
+    );
+  }
 
   return (
     <>

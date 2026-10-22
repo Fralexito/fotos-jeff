@@ -6,6 +6,7 @@ import { deudores } from "@/lib/reportes";
 import { NOMBRE_SEDE, SEDES, filtroSede } from "@/lib/sedes";
 import { Avatar, Empty, PageHeader, WhatsApp } from "@/components/ui";
 import { Apiladas, Barras, Dona } from "@/components/graficos";
+import { SimpleLista, SimpleNumeros, SimpleTitulo } from "@/components/simple";
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic"];
 
@@ -94,6 +95,34 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
   const top = [...productos.entries()].sort((x, y) => y[1].monto - x[1].monto).slice(0, 8);
   const maxProd = Math.max(...top.map(([, v]) => v.monto), 1);
   const deuda = lista.reduce((s, d) => s + d.saldo, 0);
+
+  // Vista sencilla: tres números del año, cada sede y quién debe más.
+  if (perfil.preferencias.vista === "sencilla") {
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo={`Cómo va el ${anio}`} sub={sede ? `Sede ${NOMBRE_SEDE[sede]}` : "Las tres sedes juntas"} />
+        <SimpleNumeros items={[
+          { texto: "Cobrado", valor: S(cobrado), tono: "bien" },
+          { texto: "Gastado", valor: S(gastado), tono: "debe" },
+          { texto: "Falta cobrar", valor: S(deuda), tono: "debe", href: "/panel/cobros" },
+        ]} />
+        {!sede && (
+          <>
+            <h2 className="simple-sub">Cada sede</h2>
+            <SimpleLista vacio="" filas={porSede.map((x) => ({ key: x.id, titulo: x.nombre, sub: x.debe > 0 ? `Le deben ${S(x.debe)}` : "Nadie debe", valor: S(x.cobrado), tono: "bien" as const }))} />
+          </>
+        )}
+        <h2 className="simple-sub">Los que más deben</h2>
+        <SimpleLista
+          vacio="Nadie debe. ¡Todo cobrado!"
+          filas={lista.slice(0, 10).map((d) => ({ key: d.id, href: `/panel/alumnos/${d.alumnoId}`, titulo: d.alumno, sub: [d.colegio, d.salon].filter(Boolean).join(" · "), valor: S(d.saldo), tono: "debe" as const }))}
+        />
+        <div className="simple-acciones">
+          {[actual - 1, actual].filter((y) => y !== anio).map((y) => <Link key={y} className="btn secondary" href={`/panel/reportes?anio=${y}`}>Ver {y}</Link>)}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -7,6 +7,7 @@ import { salon } from "@/lib/datos";
 import { revisarFotos, guardarFondo } from "../acciones-fotos";
 import { Refrescar } from "@/components/refrescar";
 import { ElegirCampana, SubirFotos } from "./subir";
+import { SimpleNumeros, SimpleTitulo } from "@/components/simple";
 
 const VISTAS = {
   revisar: { label: "Por revisar", estados: ["procesada", "excepcion"] },
@@ -44,7 +45,7 @@ const aHex = (rgb: string) => "#" + rgb.split(",").map((n) => Number(n).toString
 
 export default async function Fotos({ searchParams }: { searchParams: Promise<{ campana?: string; ver?: string; ok?: string; error?: string }> }) {
   const { campana: pedida, ver: pedidaVista, ...aviso } = await searchParams;
-  const { supabase } = await requirePerfil();
+  const { supabase, perfil } = await requirePerfil();
 
   const { data: campanas } = await supabase
     .from("campanas")
@@ -99,6 +100,65 @@ export default async function Fotos({ searchParams }: { searchParams: Promise<{ 
   const verdes = fotos.filter((f) => f.estado === "procesada" && f.qa?.semaforo === "verde").map((f) => f.id);
   const volver = `/panel/fotos?campana=${campana.id}&ver=${ver}`;
   const fondo = campana.fondo_rgb ?? "107,201,237";
+
+  // Vista sencilla: mirar cada foto y decir si está bien o no; subir y ajustar queda en la vista completa.
+  if (perfil.preferencias.vista === "sencilla") {
+    return (
+      <div className="simple">
+        <Refrescar activo={n.cola > 0} />
+        <SimpleTitulo titulo="Fotos" sub={`${campana.colegios?.nombre ?? ""} · ${campana.nombre}`} />
+        <Aviso {...aviso} />
+        <div className="simple-campana">
+          <ElegirCampana actual={campana.id} ver={ver} campanas={lista.map((c) => ({ id: c.id, texto: `${c.colegios?.nombre ?? ""} · ${c.nombre}` }))} />
+        </div>
+        <SimpleNumeros items={[
+          { texto: "Por mirar", valor: String(n.revisar), tono: n.revisar ? "debe" : "bien", href: `/panel/fotos?campana=${campana.id}&ver=revisar` },
+          { texto: "Editándose", valor: String(n.cola), href: `/panel/fotos?campana=${campana.id}&ver=cola` },
+          { texto: "Ya aprobadas", valor: String(n.aprobadas), tono: "bien", href: `/panel/fotos?campana=${campana.id}&ver=aprobadas` },
+        ]} />
+        {ver === "revisar" && verdes.length > 1 && (
+          <form action={revisarFotos}>
+            <input type="hidden" name="accion" value="aprobar" />
+            <input type="hidden" name="volver" value={volver} />
+            {verdes.map((id) => <input key={id} type="hidden" name="id" value={id} />)}
+            <div className="simple-acciones"><button className="btn" type="submit"><Check className="i" /> Aprobar las {verdes.length} que salieron bien</button></div>
+          </form>
+        )}
+        <h2 className="simple-sub">{VISTAS[ver].label}</h2>
+        {fotos.length === 0 ? <p className="simple-vacio">{ver === "revisar" ? "No hay fotos por mirar." : "No hay fotos aquí."}</p> : (
+          <div className="fotos-grid simple-fotos">
+            {fotos.map((f) => {
+              const vista = f.ruta_vista ? firmadas.get(f.ruta_vista) : null;
+              const a = f.alumnos;
+              const alertas = [...(f.qa?.alertas ?? []), ...(f.estado === "excepcion" && f.motivo_excepcion && !f.qa?.alertas?.length ? [f.motivo_excepcion] : [])];
+              return (
+                <article key={f.id} className={`foto foto-${f.qa?.semaforo ?? f.estado}`}>
+                  <div className="foto-img">
+                    {vista ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={vista} alt={a ? `${a.nombres} ${a.apellidos}` : "Foto"} loading="lazy" />
+                    ) : (
+                      <div className="foto-espera"><Hourglass className="i" />{f.estado === "procesando" ? "Editando…" : "En cola"}</div>
+                    )}
+                  </div>
+                  <div className="foto-info">
+                    <b>{a ? `${a.apellidos}, ${a.nombres}` : "Sin alumno"}</b>
+                    {alertas.length > 0 && <small className="late">{alertas.join(" · ")}</small>}
+                  </div>
+                  {(f.estado === "procesada" || f.estado === "excepcion") && (
+                    <div className="foto-acciones simple-si-no">
+                      <AccionFoto id={f.id} volver={volver} accion="aprobar" className="btn"><Check className="i" /> Está bien</AccionFoto>
+                      <AccionFoto id={f.id} volver={volver} accion="rechazar" className="btn secondary"><X className="i" /> No sirve</AccionFoto>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>

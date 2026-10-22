@@ -1345,3 +1345,33 @@ a.simple-item:active { transform: scale(.98); }
   .table td:first-child { min-width: 170px; }
   .table td .code, .table td.num, .table td.money { white-space: nowrap; }
 }
+
+/* Producción sencilla: marcar entregas con casillas grandes y avanzar pasos con un botón. */
+.simple-check { cursor: pointer; }
+.simple-check input { width: 30px; height: 30px; flex: none; accent-color: var(--brand); }
+.simple-check:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
+.simple-check:has(input:disabled) { opacity: .6; }
+.simple-item.hecho { opacity: .7; }
+.simple-ok { width: 28px; height: 28px; color: var(--good); flex: none; }
+.simple-paso .quien small + small { margin-top: 2px; }
+.simple-paso .btn { min-height: 48px; font-size: 16px; white-space: nowrap; }
+.simple-fijo { position: sticky; bottom: 16px; z-index: 5; }
+.simple-fijo .btn { width: 100%; min-height: 64px; font-size: 19px; font-weight: 700; justify-content: center; border-radius: 16px; box-shadow: var(--shadow-lg, var(--shadow)); }
+@media (max-width: 720px) {
+  .simple-paso { flex-wrap: wrap; }
+  .simple-paso form { width: 100%; }
+  .simple-paso .btn { width: 100%; justify-content: center; }
+  .simple-fijo { bottom: 84px; }
+}
+.simple-campana select { width: 100%; min-height: 52px; font-size: 17px; border-radius: 14px; }
+.simple-campana > * { width: 100%; }
+.simple-fotos .foto-info b { font-size: 17px; }
+.simple-si-no { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; }
+.simple-si-no form, .simple-si-no .btn { width: 100%; }
+.simple-si-no .btn { min-height: 48px; font-size: 16px; justify-content: center; }
+.simple-item .quien small.debe-txt { color: var(--warn); font-weight: 700; }
+@media (max-width: 720px) {
+  .simple-fotos { grid-template-columns: 1fr 1fr; }
+  .simple-si-no { grid-template-columns: 1fr; }
+  .simple-numeros:has(> :nth-child(3):last-child) b { font-size: 28px; }
+}

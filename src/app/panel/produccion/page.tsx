@@ -7,6 +7,7 @@ import { Aviso } from "@/components/aviso";
 import { Imprimir } from "@/components/imprimir";
 import { Empty, PageHeader, Tabs, WhatsApp } from "@/components/ui";
 import { cambiarEstadoPedido, entregarPedidos } from "../acciones-erp";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
 
 // El camino de cada pedido, con el nombre que usa el estudio.
 const ETAPAS = [
@@ -26,9 +27,9 @@ type Pedido = {
 export default async function Produccion({
   searchParams,
 }: {
-  searchParams: Promise<{ campana?: string; vista?: string; ok?: string; error?: string }>;
+  searchParams: Promise<{ campana?: string; vista?: string; paso?: string; ok?: string; error?: string }>;
 }) {
-  const { campana = "", vista: pedida, ...aviso } = await searchParams;
+  const { campana = "", vista: pedida, paso = "", ...aviso } = await searchParams;
   const { supabase, perfil } = await requirePerfil();
   const sede = filtroSede(perfil.preferencias.sede);
   const sencilla = perfil.preferencias.vista === "sencilla";
@@ -67,6 +68,115 @@ export default async function Produccion({
   const items = (p: Pedido) => p.pedido_items.map((i) => `${i.cantidad}× ${i.productos?.nombre ?? ""}`).join(", ");
   const avisoListo = (p: Pedido) =>
     whatsapp(p.alumnos?.apoderado_telefono, `Hola, le saluda Fotos Jefferson. El pedido N.º ${p.numero} de ${p.alumnos?.nombres} ya está listo para recoger.${(saldo.get(p.id) ?? 0) > 0 ? ` Saldo pendiente: ${S(saldo.get(p.id))}.` : ""}`);
+
+  // Vista sencilla: una pantalla por paso, botones grandes y nada de columnas.
+  if (sencilla) {
+    const deuda = (p: Pedido) => saldo.get(p.id) ?? 0;
+    const nombre = (p: Pedido) => `${p.alumnos?.apellidos}, ${p.alumnos?.nombres}`;
+    const elegida = (campanas ?? []).find((c) => c.id === campana);
+    const colegioDe = (c: { colegios: unknown }) => (c.colegios as { nombre: string } | null)?.nombre ?? "";
+
+    if (vista === "entregas" && !elegida) {
+      return (
+        <div className="simple">
+          <SimpleTitulo titulo="Entregar fotos" sub="¿De qué colegio vas a entregar?" />
+          <Aviso {...aviso} />
+          <SimpleLista
+            vacio="No hay colegios con pedidos abiertos."
+            filas={(campanas ?? []).map((c) => {
+              const listos = pedidos.filter((p) => p.campana_id === c.id && p.estado === "en_impresion").length;
+              return { key: c.id, href: `/panel/produccion?vista=entregas&campana=${c.id}`, titulo: colegioDe(c), sub: c.nombre, valor: `${listos} ${listos === 1 ? "listo" : "listos"}`, tono: listos ? "bien" as const : "suave" as const };
+            })}
+          />
+        </div>
+      );
+    }
+
+    if (vista === "entregas" && elegida) {
+      const salones = [...new Set(pedidos.map(salon))].sort();
+      const listos = pedidos.filter((p) => p.estado === "en_impresion").length;
+      return (
+        <div className="simple">
+          <SimpleTitulo titulo={colegioDe(elegida)} volver={{ href: "/panel/produccion?vista=entregas", texto: "Elegir otro colegio" }} sub={`${listos} ${listos === 1 ? "pedido listo" : "pedidos listos"} para entregar`} />
+          <Aviso {...aviso} />
+          {pedidos.length === 0 ? <p className="simple-vacio">Este colegio no tiene pedidos.</p> : (
+            <form action={entregarPedidos} className="simple">
+              <input type="hidden" name="volver" value={`/panel/produccion?vista=entregas&campana=${campana}`} />
+              {salones.map((s) => {
+                const lista = pedidos.filter((p) => salon(p) === s).sort((a, b) => (a.alumnos?.apellidos ?? "").localeCompare(b.alumnos?.apellidos ?? ""));
+                const hechos = lista.filter((p) => p.estado === "entregado").length;
+                return (
+                  <section key={s} className="simple-dia">
+                    <h2 className="simple-sub">{s} <small className="muted">· {hechos} de {lista.length} entregados</small></h2>
+                    <div className="simple-lista">
+                      {lista.map((p) => p.estado === "entregado" ? (
+                        <div key={p.id} className="simple-item hecho">
+                          <PackageCheck className="simple-ok" />
+                          <span className="quien"><b>{nombre(p)}</b><small>Ya se entregó</small></span>
+                        </div>
+                      ) : (
+                        <label key={p.id} className="simple-item simple-check">
+                          <input type="checkbox" name="pedido" value={p.id} disabled={p.estado !== "en_impresion"} />
+                          <span className="quien"><b>{nombre(p)}</b><small>{p.estado === "en_impresion" ? items(p) : "Todavía no está impreso"}</small>{deuda(p) > 0 && <small className="debe-txt">Debe {S(deuda(p))}</small>}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+              {listos > 0 && (
+                <div className="simple-fijo">
+                  <button className="btn" type="submit"><Truck className="i" /> Marcar como entregados</button>
+                </div>
+              )}
+            </form>
+          )}
+        </div>
+      );
+    }
+
+    const etapa = ETAPAS.find((e) => e.estado === paso);
+    if (etapa) {
+      const lista = pedidos.filter((p) => p.estado === etapa.estado);
+      const visibles = etapa.estado === "entregado" ? lista.slice(-20).reverse() : lista;
+      return (
+        <div className="simple">
+          <SimpleTitulo titulo={etapa.titulo} volver={{ href: "/panel/produccion?vista=tablero", texto: "Producción" }} sub={`${lista.length} ${lista.length === 1 ? "pedido" : "pedidos"}`} />
+          <Aviso {...aviso} />
+          {visibles.length === 0 && <p className="simple-vacio">No hay pedidos en este paso.</p>}
+          <div className="simple-lista">
+            {visibles.map((p) => (
+              <div key={p.id} className="simple-item simple-paso">
+                <span className="quien"><b>{nombre(p)}</b><small>{p.campanas?.colegios?.nombre} · {salon(p)}</small><small>{items(p) || "Sin productos"}{deuda(p) > 0 ? ` · Debe ${S(deuda(p))}` : ""}</small></span>
+                {etapa.siguiente && (
+                  <form action={cambiarEstadoPedido}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <input type="hidden" name="estado" value={etapa.siguiente} />
+                    <input type="hidden" name="volver" value={`/panel/produccion?vista=tablero&paso=${etapa.estado}`} />
+                    <button className="btn">Ya está {etapa.accion?.toLowerCase()} <ChevronRight className="i" /></button>
+                  </form>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo="Producción" sub="¿En qué paso van los pedidos?" />
+        <Aviso {...aviso} />
+        <SimpleLista
+          vacio=""
+          filas={ETAPAS.map((e) => ({ key: e.estado, href: `/panel/produccion?vista=tablero&paso=${e.estado}`, titulo: e.titulo, valor: String(cuenta(e.estado)), tono: cuenta(e.estado) && e.estado !== "entregado" ? "debe" as const : "suave" as const }))}
+        />
+        <div className="simple-acciones">
+          <Link className="btn" href="/panel/produccion?vista=entregas"><Truck className="i" /> Entregar fotos</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

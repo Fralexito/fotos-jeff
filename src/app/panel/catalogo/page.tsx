@@ -6,10 +6,11 @@ import { Empty, PageHeader } from "@/components/ui";
 import { CATEGORIAS, NIVELES, S } from "@/lib/formato";
 import { CambiarCategoria } from "./nivel";
 import { alternarProducto, crearProducto } from "../actions";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
 
 export default async function Catalogo({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; nuevo?: string }> }) {
   const { nuevo, ...aviso } = await searchParams;
-  const { supabase } = await requirePerfil(PERMISOS.catalogo);
+  const { supabase, perfil } = await requirePerfil(PERMISOS.catalogo);
   const { data: productos } = await supabase.from("productos").select("*").order("activo", { ascending: false }).order("precio");
   // Una sección por categoría; las promociones además se dividen por nivel.
   type Prod = { id: string; codigo: string; nombre: string; descripcion: string | null; precio: number; es_combo: boolean; activo: boolean; categoria: string; nivel: string | null };
@@ -22,6 +23,28 @@ export default async function Catalogo({ searchParams }: { searchParams: Promise
         : [["", lista] as const];
     return { cat, titulo, total: lista.length, grupos };
   });
+
+  // Vista sencilla: la lista de precios, como un menú.
+  if (perfil.preferencias.vista === "sencilla") {
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo="Precios" sub="Lo que se vende" />
+        <Aviso {...aviso} />
+        {secciones.filter((x) => x.grupos.some(([, l]) => l.some((p) => p.activo))).map((x) => (
+          <section key={x.cat} className="simple-dia">
+            <h2 className="simple-sub">{x.titulo}</h2>
+            <SimpleLista
+              vacio=""
+              filas={x.grupos.flatMap(([nivel, l]) => l).filter((p) => p.activo).map((p) => ({
+                key: p.id, titulo: p.nombre, sub: [x.grupos.find(([, l]) => l.includes(p))?.[0], p.descripcion].filter(Boolean).join(" · ") || undefined,
+                valor: S(p.precio), tono: "bien" as const,
+              }))}
+            />
+          </section>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
