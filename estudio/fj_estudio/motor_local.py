@@ -41,6 +41,17 @@ def cargar_pipeline(ruta_pipeline: str | None = None):
     raise FileNotFoundError("No encontré el motor de edición (pipeline_fotos.py).")
 
 
+def buscar_modelo_cara() -> str | None:
+    """face_landmarker.task junto al motor (lo descarga motor.py la primera vez)."""
+    aqui = os.path.dirname(os.path.abspath(__file__))
+    for c in (os.path.join(aqui, "..", "..", "pipeline"), os.path.join(aqui, "..", "pipeline"),
+              r"C:\dev\fotos-jeff-motor\pipeline", os.path.join(getattr(sys, "_MEIPASS", aqui), "pipeline")):
+        r = os.path.join(c, "face_landmarker.task")
+        if os.path.exists(r):
+            return os.path.abspath(r)
+    return None
+
+
 def medida_desde_fila(m) -> Medida:
     return Medida(m["nombre"], m["ancho_cm"], m["alto_cm"], m["dpi"], m["tipo"], bool(m["favorita"]))
 
@@ -54,7 +65,7 @@ class EditorLocal:
                  ruta_pipeline: str | None = None):
         self.base = base
         self.modelo_onnx = modelo_onnx
-        self.modelo_cara = modelo_cara
+        self.modelo_cara = modelo_cara or buscar_modelo_cara()
         self.ruta_pipeline = ruta_pipeline
         self._pf = None
 
