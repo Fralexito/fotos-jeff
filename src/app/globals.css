@@ -1333,3 +1333,15 @@ a.simple-item:active { transform: scale(.98); }
 .simple-cierre input { font-size: 20px; min-height: 52px; }
 .simple-cierre .btn { min-height: 60px; font-size: 18px; }
 .simple-dia { display: grid; gap: 12px; }
+
+/* Arreglos de cuadre: tres números en una fila, tablas que no se aplastan en celular. */
+.simple-numeros:has(> :nth-child(3):last-child) { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.simple-numeros:has(> :nth-child(3):last-child) b { font-size: 34px; }
+@media (max-width: 720px) {
+  .abuelo-sedes { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .abuelo-sedes > * { min-width: 0 !important; padding-left: 10px !important; padding-right: 10px !important; }
+  .abuelo-sedes b { font-size: 16px !important; }
+  .table th { white-space: nowrap; }
+  .table td:first-child { min-width: 170px; }
+  .table td .code, .table td.num, .table td.money { white-space: nowrap; }
+}
