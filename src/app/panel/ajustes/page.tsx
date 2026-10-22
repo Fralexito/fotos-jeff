@@ -30,7 +30,7 @@ export default async function Ajustes({ searchParams }: { searchParams: Promise<
 
       <Apariencia inicial={perfil.preferencias} />
 
-      <div className="card">
+      <div className="card detalle">
         <div className="card-head">
           <div>
             <h2>Sedes</h2>
@@ -69,7 +69,7 @@ export default async function Ajustes({ searchParams }: { searchParams: Promise<
             <div className="form-foot"><button className="btn" type="submit">Guardar perfil</button></div>
           </form>
         </div>
-        <div className="card">
+        <div className="card detalle">
           <div className="card-head">
             <div>
               <h2>Tu rol</h2>
@@ -84,7 +84,7 @@ export default async function Ajustes({ searchParams }: { searchParams: Promise<
       </div>
 
       {equipo.length > 0 && (
-        <div className="card">
+        <div className="card detalle">
           <div className="card-head">
             <div>
               <h2>Equipo</h2>

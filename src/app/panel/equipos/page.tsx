@@ -6,6 +6,7 @@ import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
 import { Empty, PageHeader } from "@/components/ui";
 import { estadoEquipo, guardarEquipo } from "../acciones-erp";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
 
 const TIPOS: [string, string, string, LucideIcon][] = [
   ["camara", "Cámaras", "Cámara", Camera], ["lente", "Lentes", "Lente", Aperture], ["flash", "Flashes", "Flash", Zap],
@@ -53,6 +54,27 @@ export default async function Equipos({ searchParams }: { searchParams: Promise<
   const en7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
   const porMantener = activos.filter((e) => e.proximo_mantenimiento && e.proximo_mantenimiento <= en7);
   const sedeForm = sede ?? "nauta";
+
+  // Vista sencilla: qué equipo hay, dónde está y si está bien.
+  if (perfil.preferencias.vista === "sencilla") {
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo="Cámaras y equipos" sub={sede ? `Sede ${NOMBRE_SEDE[sede]}` : "Todas las sedes"} />
+        <Aviso {...aviso} />
+        <SimpleLista
+          vacio="Todavía no hay equipos anotados."
+          filas={activos.map((e) => {
+            const toca = porMantener.includes(e);
+            return {
+              key: e.id, titulo: e.nombre,
+              sub: [NOMBRE_SEDE[e.sede], e.asignado_a && `lo tiene ${e.asignado_a}`, toca && "toca mantenimiento"].filter(Boolean).join(" · "),
+              valor: (ESTADOS[e.estado] ?? [e.estado])[0], tono: toca || e.estado === "mantenimiento" ? "debe" as const : "suave" as const,
+            };
+          })}
+        />
+      </div>
+    );
+  }
 
   return (
     <>

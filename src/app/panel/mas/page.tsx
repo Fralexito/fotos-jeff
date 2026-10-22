@@ -10,15 +10,17 @@ const GRUPOS = [["dia", "El día a día"], ["dinero", "Dinero"], ["colegios", "C
 // Todas las secciones agrupadas (en celular, la barra de abajo solo muestra cinco).
 export default async function Mas() {
   const { perfil } = await requirePerfil();
+  // En la vista sencilla no se repite Inicio (ya está abajo) ni la tabla tipo Excel.
+  const sencilla = perfil.preferencias.vista === "sencilla";
   const secciones = [
-    { g: "dia", href: "/panel", t: "Inicio", d: "Resumen del día", I: LayoutDashboard, ok: true },
+    { g: "dia", href: "/panel", t: "Inicio", d: "Resumen del día", I: LayoutDashboard, ok: !sencilla },
     { g: "dia", href: "/panel/hoy", t: "Resumen del día", d: "Todo el negocio en una pantalla", I: Sun, ok: true },
     { g: "colegios", href: "/panel/clientes", t: "Clientes", d: "Embudo, contactos y recordatorios", I: Handshake, ok: puede(perfil, "clientes") },
     { g: "colegios", href: "/panel/colegios", t: "Colegios y alumnos", d: "Campañas y listas", I: School, ok: true },
     { g: "dia", href: "/panel/calendario", t: "Calendario", d: "Tomas, entregas y recordatorios", I: CalendarDays, ok: true },
-    { g: "colegios", href: "/panel/tabla", t: "Tabla general", d: "Todo ordenado como en Excel", I: Sheet, ok: true },
+    { g: "colegios", href: "/panel/tabla", t: "Tabla general", d: "Todo ordenado como en Excel", I: Sheet, ok: !sencilla },
     { g: "fotos", href: "/panel/fotos", t: "Fotos", d: "Subir, editar y aprobar fotos", I: Images, ok: true },
-    { g: "fotos", href: "/panel/produccion", t: "Producción", d: "Edición, impresión y entregas", I: Factory, ok: true },
+    { g: "fotos", href: "/panel/produccion?vista=tablero", t: "Producción", d: "Edición, impresión y entregas", I: Factory, ok: true },
     { g: "dinero", href: "/panel/cobros", t: "Cobros", d: "Quién pagó y quién debe", I: Wallet, ok: puede(perfil, "cobros") },
     { g: "dinero", href: "/panel/caja", t: "Caja", d: "Ingresos, gastos y cierre", I: Vault, ok: puede(perfil, "caja") },
     { g: "dinero", href: "/panel/catalogo", t: "Catálogo", d: "Productos y precios", I: Package, ok: puede(perfil, "catalogo") },

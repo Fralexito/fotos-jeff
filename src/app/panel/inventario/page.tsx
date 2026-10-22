@@ -5,6 +5,7 @@ import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
 import { Empty, PageHeader } from "@/components/ui";
 import { crearMaterial, moverInventario } from "../acciones-erp";
+import { SimpleLista, SimpleTitulo } from "@/components/simple";
 
 const CATEGORIAS = ["Papel", "Marcos", "Tinta", "Empaque", "Carnets", "Otros"];
 const MOTIVO: Record<string, string> = { compra: "Compra", uso: "Uso", ajuste: "Ajuste" };
@@ -24,6 +25,32 @@ export default async function Inventario({ searchParams }: { searchParams: Promi
   const bajos = materiales.filter((m) => Number(m.stock) <= Number(m.minimo));
   const valor = materiales.reduce((s, m) => s + Math.max(0, Number(m.stock)) * Number(m.costo_unitario ?? 0), 0);
   const conCaja = puede(perfil, "caja");
+
+  // Vista sencilla: cuánto queda de cada cosa y qué hay que comprar.
+  if (perfil.preferencias.vista === "sencilla") {
+    const fila = (m: Material) => ({
+      key: m.id, titulo: m.nombre, sub: Number(m.stock) <= Number(m.minimo) ? "Hay que comprar pronto" : m.categoria,
+      valor: `${cant(m.stock)} ${m.unidad}`, tono: Number(m.stock) <= Number(m.minimo) ? "debe" as const : "bien" as const,
+    });
+    return (
+      <div className="simple">
+        <SimpleTitulo titulo="Materiales" sub="Cuánto queda de cada cosa" />
+        <Aviso {...aviso} />
+        {bajos.length > 0 && (
+          <>
+            <h2 className="simple-sub">Comprar pronto</h2>
+            <SimpleLista vacio="" filas={bajos.map(fila)} />
+          </>
+        )}
+        {(bajos.length === 0 || materiales.length > bajos.length) && (
+          <>
+            <h2 className="simple-sub">{bajos.length > 0 ? "Lo demás" : "Todo"}</h2>
+            <SimpleLista vacio="Todavía no hay materiales anotados." filas={materiales.filter((m) => !bajos.includes(m)).map(fila)} />
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
