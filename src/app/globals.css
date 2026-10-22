@@ -575,6 +575,7 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 [data-modulo="inventario"] { --m: #df6a35; }
 [data-modulo="reportes"] { --m: #3a6fd8; }
 [data-modulo="tabla"] { --m: #16a34a; }
+[data-modulo="fotos"] { --m: #c026d3; }
 [data-modulo="ajustes"], [data-modulo="mas"], [data-modulo="buscar"] { --m: #64748b; }
 
 .pagehead { align-items: center; justify-content: flex-start; gap: 14px; }
@@ -798,4 +799,50 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 @media (max-width: 720px) {
   .hoja-acciones { margin-left: 0; }
   .hoja-marco { max-height: calc(100dvh - 300px); }
+}
+
+/* ---------------------------------------------------------------- Fotos */
+.fotos-top { display: grid; grid-template-columns: minmax(240px, 1fr) 2fr; gap: 16px; margin-bottom: 4px; }
+.fotos-top .card { padding: 16px 18px; }
+.fotos-campana { display: grid; gap: 8px; align-content: start; }
+.fotos-campana .muted-text { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.fondo-muestra { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.fondo-muestra span { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--line-strong); }
+.fondo-campo input[type="color"] { height: 48px; padding: 4px; cursor: pointer; }
+.subir { display: grid; gap: 10px; }
+.subir-medidas { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.subir-zona { all: unset; box-sizing: border-box; position: relative; overflow: hidden; display: grid; justify-items: center; gap: 4px; padding: 20px; border: 2px dashed var(--brand-line); border-radius: var(--radius-sm); background: color-mix(in oklab, var(--brand) 4%, var(--surface)); text-align: center; cursor: pointer; transition: background-color 160ms ease, border-color 160ms ease, transform 120ms var(--ease-out); }
+.subir-zona:hover, .subir-zona.sobre { background: var(--brand-soft); border-color: var(--brand); }
+.subir-zona:active { transform: scale(.99); }
+.subir-zona:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.subir-zona[disabled] { cursor: default; opacity: .8; }
+.subir-zona .i { width: 28px; height: 28px; color: var(--brand); }
+.subir-zona b { font-size: 15px; }
+.subir-zona small { color: var(--muted); font-size: 13px; }
+.subir-barra { position: absolute; left: 0; bottom: 0; height: 4px; width: var(--p); background: var(--brand); transition: width 200ms var(--ease-out); }
+.subir-msg { font-size: 13px; color: var(--good); margin: 0; }
+.subir-msg.mal { color: var(--bad); }
+.girando { animation: girar 900ms linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+.elegir-campana { height: 42px; }
+.fotos-masivo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 14px; border-radius: var(--radius-sm); background: var(--good-soft); color: var(--ink); font-size: 14px; }
+.fotos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+.foto { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column; }
+.foto-rojo, .foto-excepcion { border-color: var(--bad-line); }
+.foto-amarillo { border-color: var(--warn-line); }
+.foto-img { position: relative; aspect-ratio: 4 / 5; background: var(--surface-2); }
+.foto-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.foto-img .badge { position: absolute; top: 8px; left: 8px; box-shadow: var(--shadow-sm); }
+.foto-espera { height: 100%; display: grid; place-content: center; justify-items: center; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.foto-info { padding: 10px 12px 4px; display: grid; gap: 2px; flex: 1; }
+.foto-info b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.foto-info small { color: var(--muted); font-size: 12px; }
+.foto-alertas { margin: 6px 0 0; padding: 0 0 0 16px; font-size: 12px; color: var(--ink-2); display: grid; gap: 2px; }
+.foto-rojo .foto-alertas, .foto-excepcion .foto-alertas { color: var(--bad); }
+.foto-salidas { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
+.foto-acciones { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 12px; }
+.foto-acciones .btn:first-child { flex: 1; justify-content: center; }
+@media (max-width: 720px) {
+  .fotos-top { grid-template-columns: 1fr; }
+  .fotos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }

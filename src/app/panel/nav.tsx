@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Boxes, ChartColumn, Factory, Handshake, LayoutDashboard, LayoutGrid, Package, School, Settings, Sheet, Vault, Wallet } from "lucide-react";
+import { Boxes, ChartColumn, Factory, Handshake, Images, LayoutDashboard, LayoutGrid, Package, School, Settings, Sheet, Vault, Wallet } from "lucide-react";
 
 const ICONOS = {
   inicio: LayoutDashboard, clientes: Handshake, colegios: School, produccion: Factory, cobros: Wallet, caja: Vault,
-  catalogo: Package, inventario: Boxes, reportes: ChartColumn, ajustes: Settings, mas: LayoutGrid, tabla: Sheet,
+  catalogo: Package, inventario: Boxes, reportes: ChartColumn, ajustes: Settings, mas: LayoutGrid, tabla: Sheet, fotos: Images,
 };
 
 export type ItemNav = { href: string; texto: string; icono: keyof typeof ICONOS; count?: number; movil?: boolean };
