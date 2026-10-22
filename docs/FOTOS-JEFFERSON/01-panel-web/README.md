@@ -116,3 +116,8 @@ Usuarios actuales: FADG (`dueno`) y Dan Gómez (`operador`). Las contraseñas no
 4. Botones: **Aprobar** (`aprobada`), **Rechazar** (`rechazada`), **Volver a editar** (vuelve a `subida`). La acción viaja en un campo oculto del formulario (arreglo del PR #21).
 
 Esquema completo de la base: [base-de-datos.md](base-de-datos.md).
+
+## Tablero, equipos y asistente (22-oct-2026, PRs #34–#36)
+- **Inicio (vista completa)**: meta del mes con anillo (tabla `metas`, una fila por sede y mes; la fija el dueño), caja de hoy, 4 tarjetas, evolución de ingresos 7/30/60 días con meta diaria, demanda por tipo. Datos en `src/lib/tablero.ts`. La vista sencilla no cambia.
+- **Cámaras y equipos** (`/panel/equipos`, tabla `equipos`): por tipo y sede, estado, quién lo tiene, aviso de mantenimiento a 7 días.
+- **Asistente IA** (`/panel/asistente`, solo dueño y operador): chat que responde con una foto de los datos del panel (sin teléfonos). Usa la API de Claude (`claude-opus-5-5`, esfuerzo bajo) y necesita `ANTHROPIC_API_KEY` en Vercel; sin la clave muestra un aviso.

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, CalendarDays, Camera, ChartColumn, Factory, Handshake, Images, LayoutDashboard, Package, School, Settings, Sheet, Sun, Vault, Wallet } from "lucide-react";
+import { Boxes, CalendarDays, Camera, ChartColumn, Factory, Handshake, Images, LayoutDashboard, Package, School, Settings, Sheet, Sparkles, Sun, Vault, Wallet } from "lucide-react";
 import { LogOut } from "lucide-react";
 import { puede, requirePerfil } from "@/lib/auth";
 import { salir } from "../../login/actions";
@@ -23,6 +23,7 @@ export default async function Mas() {
     { href: "/panel/inventario", t: "Inventario", d: "Papel, marcos y tinta", I: Boxes, ok: true },
     { href: "/panel/equipos", t: "Cámaras y equipos", d: "Equipo por sede y mantenimiento", I: Camera, ok: true },
     { href: "/panel/reportes", t: "Reportes", d: "Ventas, cobros y deudores", I: ChartColumn, ok: puede(perfil, "reportes") },
+    { href: "/panel/asistente", t: "Asistente IA", d: "Pregunta lo que quieras del negocio", I: Sparkles, ok: puede(perfil, "reportes") },
     { href: "/panel/ajustes", t: "Ajustes", d: "Colores, letra y perfil", I: Settings, ok: true },
   ].filter((s) => s.ok);
   return (

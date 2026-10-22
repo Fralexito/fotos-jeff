@@ -7,6 +7,8 @@
 - [ ] Cargar datos reales: colegios, campañas, alumnos, precios del catálogo.
 - [ ] Probar el flujo completo de fotos subiendo un lote real en `/panel/fotos`.
 - [ ] Crear usuarios para Liz y otros encargados cuando lo pidan.
+- [ ] **Asistente IA**: poner `ANTHROPIC_API_KEY` en Vercel (proyecto del panel, Production) y volver a desplegar. Cuesta por uso (aprox. S/ 0,05–0,10 por pregunta).
+- [ ] Fijar la meta del mes por sede (Inicio → "Fijar meta") y registrar las cámaras y equipos.
 
 ## Web pública
 - [ ] Poner el **WhatsApp real de cada sede** (`SEDES` en `web-publica/src/App.jsx`); hoy son de ejemplo y los pedidos no llegan a nadie.
