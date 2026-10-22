@@ -54,13 +54,12 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   ];
   const p = perfil.preferencias;
   const sencilla = p.vista === "sencilla";
-  // Vista sencilla: solo las cuatro tareas del día a día y un acceso a todo lo demás.
+  // Vista sencilla: solo inicio, cobrar, entregar y un acceso a todo lo demás.
   const esencial: ItemNav[] = [
     gestion[0],
-    gestion[1],
     ...ventas.filter((i) => i.icono === "cobros"),
-    ...gestion.filter((i) => i.icono === "produccion" || i.icono === "clientes"),
-    { href: "/panel/mas", texto: "Todas las secciones", icono: "mas", movil: true },
+    ...gestion.filter((i) => i.icono === "produccion").map((i) => ({ ...i, texto: "Entregar fotos" })),
+    { href: "/panel/mas", texto: "Más cosas", icono: "mas", movil: true },
   ];
 
   return (
@@ -76,10 +75,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         <nav className="side-nav" aria-label="Menú">
         {sencilla ? (
           <>
-            <div className="section">Lo de cada día</div>
             <Nav items={esencial} />
-            <div className="section hide-mobile">Cuenta</div>
-            <Nav items={[cuenta[0]]} />
           </>
         ) : (
           <>

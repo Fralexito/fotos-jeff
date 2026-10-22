@@ -1192,3 +1192,46 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 .chat-caja textarea { flex: 1; resize: none; height: 44px; padding: 11px 14px; font-family: inherit; }
 .chat-caja .btn { height: 44px; width: 48px; padding: 0; justify-content: center; }
 @media (max-width: 640px) { .chat { height: calc(100dvh - 250px); } .chat-mensajes { padding: 14px; } }
+
+/* ---------------------------------------------------------------- Vista sencilla mínima (para el abuelo) */
+.app[data-vista="sencilla"] .topsearch,
+.app[data-vista="sencilla"] .sede-pick,
+.app[data-vista="sencilla"] .menu-wrap,
+.app[data-vista="sencilla"] .topactions .icon-btn { display: none; }
+.app[data-vista="sencilla"] .topbar { justify-content: flex-end; }
+.app[data-vista="sencilla"] .side-nav { padding-top: 10px; }
+.app[data-vista="sencilla"] .navlink { padding: 14px 14px; font-size: 17px; font-weight: 600; }
+.app[data-vista="sencilla"] .navlink svg { width: 22px; height: 22px; }
+
+.simple { max-width: 720px; margin: 0 auto; display: grid; gap: 22px; }
+.simple-hola h1 { font-size: 34px; letter-spacing: -.02em; margin: 0; }
+.simple-hola p { margin: 6px 0 0; font-size: 18px; color: var(--muted); }
+.simple-aviso { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 16px; background: var(--warn-soft); color: var(--warn); font-size: 19px; font-weight: 650; text-decoration: none; border: 1.5px solid color-mix(in srgb, var(--warn) 35%, transparent); }
+.simple-aviso span { flex: 1; color: var(--ink); }
+.simple-aviso svg { width: 26px; height: 26px; flex: none; }
+.simple-numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.simple-numeros a { display: grid; gap: 6px; padding: 24px 26px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); text-decoration: none; color: var(--ink); transition: transform 160ms var(--ease-out); }
+.simple-numeros a:active { transform: scale(.98); }
+.simple-numeros small { font-size: 19px; color: var(--ink-2); font-weight: 600; }
+.simple-numeros b { font-size: 42px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.1; color: var(--good); }
+.simple-numeros b.debe { color: var(--warn); }
+.simple-botones { display: grid; gap: 14px; }
+.simple-botones a { display: flex; align-items: center; gap: 18px; min-height: 76px; padding: 0 26px; border-radius: 18px; font-size: 22px; font-weight: 700; text-decoration: none; color: var(--ink); background: var(--surface); border: 2px solid var(--line-strong); transition: transform 160ms var(--ease-out), border-color 160ms ease; }
+.simple-botones a:hover { border-color: var(--brand); }
+.simple-botones a:active { transform: scale(.98); }
+.simple-botones a svg { width: 32px; height: 32px; color: var(--brand); flex: none; }
+.simple-botones a.principal { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 12px 26px -12px color-mix(in srgb, var(--brand) 80%, transparent); }
+.simple-botones a.principal svg { color: #fff; }
+@media (max-width: 640px) {
+  .simple { gap: 16px; }
+  .simple-hola h1 { font-size: 28px; }
+  .simple-numeros { grid-template-columns: 1fr; gap: 12px; }
+  .simple-numeros a { padding: 18px 20px; grid-template-columns: 1fr auto; align-items: center; }
+  .simple-numeros b { font-size: 30px; }
+  .simple-botones a { min-height: 68px; font-size: 20px; }
+  .app[data-vista="sencilla"] .navlink { font-size: 12px; padding: 6px 4px; }
+}
+@media (max-width: 900px) {
+  .app[data-vista="sencilla"] .topbar, .app[data-vista="sencilla"] .topactions { justify-content: flex-end; width: 100%; }
+  .app[data-vista="sencilla"] .switch .hide-sm { display: inline !important; }
+}
