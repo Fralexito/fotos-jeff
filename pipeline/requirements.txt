@@ -1,0 +1,8 @@
+numpy
+opencv-python-headless
+pillow
+pymatting
+# Opcionales: segmentación IA y anclajes faciales
+# torch
+# transformers
+# mediapipe

@@ -1,0 +1,37 @@
+# Dependencias
+node_modules/
+.pnp*
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Variables de entorno (nunca subir claves)
+.env
+.env.local
+.env.*.local
+
+# Vercel / Supabase local
+.vercel/
+supabase/.branches/
+supabase/.temp/
+
+# Python (pipeline de edición)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Fotos de trabajo: viven en Supabase Storage, no en git
+pipeline/entrada/
+pipeline/salida/
+*.cr2
+*.CR2
+*.nef
+*.NEF
+
+# Sistema
+.DS_Store
+Thumbs.db
