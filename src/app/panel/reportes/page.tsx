@@ -186,6 +186,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
       <div className="card" id="deudores">
         <div className="card-head">
           <div><h2>Quién debe</h2><p>Todos los pedidos con saldo, de mayor a menor. El botón manda un recordatorio amable por WhatsApp.</p></div>
+          {lista.length > 0 && <Link className="btn wa sm" href="/panel/cobros/whatsapp">Cobrar a todos por WhatsApp</Link>}
           {lista.length > 0 && <a className="btn secondary sm" href="/panel/reportes/deudores" download><Download className="i" /> Descargar Excel</a>}
         </div>
         {lista.length === 0 ? <Empty icon={HandCoins} title="Nadie debe">Todos los pedidos están pagados.</Empty> : (
@@ -195,7 +196,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
               <tbody>
                 {lista.slice(0, 50).map((d) => (
                   <tr key={d.id}>
-                    <td><b>{d.alumno}</b><br /><small className="muted">N.º {d.numero}{d.salon && ` · ${d.salon}`}</small></td>
+                    <td><Link href={`/panel/alumnos/${d.alumnoId}`}><b>{d.alumno}</b></Link><br /><small className="muted">N.º {d.numero}{d.salon && ` · ${d.salon}`}</small></td>
                     <td>{d.colegio}<br /><small className="muted">{d.campana}</small></td>
                     <td className="num">{S(d.total)}</td>
                     <td className="num money neg">{S(d.saldo)}</td>

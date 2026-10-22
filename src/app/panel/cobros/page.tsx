@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CircleCheck, CircleDashed, CircleDot, Receipt, Search } from "lucide-react";
+import { CircleCheck, CircleDashed, CircleDot, Receipt, Search, Send } from "lucide-react";
 import { filtroSede } from "@/lib/sedes";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
@@ -65,7 +65,8 @@ export default async function Cobros({
   return (
     <>
       <PageHeader modulo="cobros"
-        title="Cobros" subtitle="Quién pagó y quién debe. Busca al alumno, escribe el monto y elige cómo pagó." />
+        title="Cobros" subtitle="Quién pagó y quién debe. Busca al alumno, escribe el monto y elige cómo pagó."
+        actions={<Link className="btn wa" href="/panel/cobros/whatsapp"><Send className="i" /> Cobrar por WhatsApp</Link>} />
       <Aviso {...aviso} />
 
       <div className="kpis detalle">
@@ -159,7 +160,7 @@ export default async function Cobros({
                   <div className="main">
                     <Avatar name={a ? `${a.nombres} ${a.apellidos}` : "?"} />
                     <div>
-                      <div className="title">{nombre}</div>
+                      <Link className="title" href={`/panel/alumnos/${p.alumno_id}`}>{nombre}</Link>
                       <div className="meta">
                         N.º {p.numero} · total {S(p.total)} · pagado {S(p.pagado)}
                         {a && (a.grado || a.seccion) && ` · ${[a.grado && `${a.grado}.º`, a.seccion].filter(Boolean).join(" ")}`}

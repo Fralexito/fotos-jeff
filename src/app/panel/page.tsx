@@ -1,6 +1,6 @@
 import { filtroSede } from "@/lib/sedes";
 import Link from "next/link";
-import { ArrowUpRight, Search, Truck, Boxes, CalendarDays, ChevronRight, CircleAlert, CircleCheck, Factory, HandCoins, Handshake, ListTodo, PackageCheck, School, Sparkles, Wallet } from "lucide-react";
+import { ArrowUpRight, Search, Truck, Boxes, CalendarDays, ChevronRight, CircleAlert, CircleCheck, Factory, HandCoins, Handshake, ListTodo, PackageCheck, School, Sparkles, Sun, Wallet } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
 import { S, TIPO_CAMPANA, fecha, saludo } from "@/lib/formato";
 import { Avatar, Empty } from "@/components/ui";
@@ -116,6 +116,12 @@ export default async function Inicio() {
           </Link>
         </div>
 
+        <Link className="banner resumen" href="/panel/hoy">
+          <Sun className="i" />
+          <span><b>Ver el resumen grande del día</b> · las tres sedes juntas, en letra grande.</span>
+          <span className="banner-go">Abrir <ChevronRight className="i" /></span>
+        </Link>
+
         <h2 className="ask">¿Qué quieres hacer?</h2>
         <div className="big-actions">
           {veDinero && (
@@ -155,8 +161,11 @@ export default async function Inicio() {
                 <HandCoins className="i" /> Registrar un pago
               </Link>
             )}
-            <Link className="btn glass" href="/panel/colegios">
-              <School className="i" /> Colegios
+            <Link className="btn glass" href="/panel/hoy">
+              <Sun className="i" /> Resumen del día
+            </Link>
+            <Link className="btn glass" href="/panel/calendario">
+              <CalendarDays className="i" /> Calendario
             </Link>
           </div>
         </div>

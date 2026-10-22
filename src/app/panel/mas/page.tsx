@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, ChartColumn, Factory, Handshake, Images, LayoutDashboard, Package, School, Settings, Sheet, Vault, Wallet } from "lucide-react";
+import { Boxes, CalendarDays, ChartColumn, Factory, Handshake, Images, LayoutDashboard, Package, School, Settings, Sheet, Sun, Vault, Wallet } from "lucide-react";
 import { puede, requirePerfil } from "@/lib/auth";
 import { PageHeader } from "@/components/ui";
 
@@ -8,8 +8,10 @@ export default async function Mas() {
   const { perfil } = await requirePerfil();
   const secciones = [
     { href: "/panel", t: "Inicio", d: "Resumen del día", I: LayoutDashboard, ok: true },
+    { href: "/panel/hoy", t: "Resumen del día", d: "Todo el negocio en una pantalla", I: Sun, ok: true },
     { href: "/panel/clientes", t: "Clientes", d: "Embudo, contactos y recordatorios", I: Handshake, ok: puede(perfil, "clientes") },
     { href: "/panel/colegios", t: "Colegios y alumnos", d: "Campañas y listas", I: School, ok: true },
+    { href: "/panel/calendario", t: "Calendario", d: "Tomas, entregas y recordatorios", I: CalendarDays, ok: true },
     { href: "/panel/tabla", t: "Tabla general", d: "Todo ordenado como en Excel", I: Sheet, ok: true },
     { href: "/panel/fotos", t: "Fotos", d: "Subir, editar y aprobar fotos", I: Images, ok: true },
     { href: "/panel/produccion", t: "Producción", d: "Edición, impresión y entregas", I: Factory, ok: true },

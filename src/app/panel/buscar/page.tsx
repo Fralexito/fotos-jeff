@@ -81,7 +81,7 @@ export default async function Buscar({ searchParams }: { searchParams: Promise<{
           <div className="list">
             {alumnos!.data!.map((a) => (
               <div className="item" key={a.id}>
-                <Link className="main" href={`/panel/campanas/${a.campana_id}`}>
+                <Link className="main" href={`/panel/alumnos/${a.id}`}>
                   <Avatar name={`${a.nombres} ${a.apellidos}`} />
                   <div>
                     <div className="title">{a.apellidos}, {a.nombres}</div>

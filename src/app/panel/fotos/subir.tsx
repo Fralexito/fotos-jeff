@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImageUp, LoaderCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -93,17 +93,6 @@ export function SubirFotos({ campanaId, alumnos, medidas }: { campanaId: string;
       />
     </div>
   );
-}
-
-// Mientras haya fotos en la cola, la pantalla se actualiza sola.
-export function Refrescar({ activo }: { activo: boolean }) {
-  const router = useRouter();
-  useEffect(() => {
-    if (!activo) return;
-    const t = setInterval(() => router.refresh(), 8000);
-    return () => clearInterval(t);
-  }, [activo, router]);
-  return null;
 }
 
 export function ElegirCampana({ campanas, actual, ver }: { campanas: { id: string; texto: string }[]; actual: string; ver: string }) {

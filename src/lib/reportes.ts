@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type Deudor = {
-  id: string; numero: number; saldo: number; total: number; pagado: number; estado: string;
+  id: string; alumnoId: string; numero: number; saldo: number; total: number; pagado: number; estado: string;
   alumno: string; telefono: string | null; salon: string; colegio: string; campana: string;
 };
 
@@ -9,7 +9,7 @@ export type Deudor = {
 export async function deudores(supabase: SupabaseClient, sede: string | null = null): Promise<Deudor[]> {
   let q = supabase
     .from("pedidos_saldo")
-    .select("id, numero, total, pagado, saldo, estado")
+    .select("id, alumno_id, numero, total, pagado, saldo, estado")
     .neq("estado", "anulado")
     .gt("saldo", 0)
     .order("saldo", { ascending: false })
@@ -37,7 +37,7 @@ export async function deudores(supabase: SupabaseClient, sede: string | null = n
     }
   }
   return (saldos ?? []).map((s) => ({
-    id: s.id, numero: s.numero, estado: s.estado,
+    id: s.id, alumnoId: s.alumno_id, numero: s.numero, estado: s.estado,
     saldo: Number(s.saldo), total: Number(s.total), pagado: Number(s.pagado),
     ...(datos.get(s.id) ?? { alumno: "", telefono: null, salon: "", colegio: "", campana: "" }),
   }));

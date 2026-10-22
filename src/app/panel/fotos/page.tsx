@@ -5,7 +5,8 @@ import { Modal } from "@/components/modal";
 import { Empty, PageHeader, Tabs } from "@/components/ui";
 import { salon } from "@/lib/datos";
 import { revisarFotos, guardarFondo } from "../acciones-fotos";
-import { ElegirCampana, Refrescar, SubirFotos } from "./subir";
+import { Refrescar } from "@/components/refrescar";
+import { ElegirCampana, SubirFotos } from "./subir";
 
 const VISTAS = {
   revisar: { label: "Por revisar", estados: ["procesada", "excepcion"] },

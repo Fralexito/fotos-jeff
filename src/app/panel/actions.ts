@@ -279,3 +279,37 @@ export async function guardarSede(fd: FormData) {
   revalidatePath("/panel/ajustes");
   volver("/panel/ajustes", error ? { error: "No se pudo guardar la sede." } : { ok: "Sede guardada." });
 }
+
+// ---------------------------------------------------------------- Ficha del alumno y calendario
+
+export async function editarAlumno(fd: FormData) {
+  const { supabase } = await requirePerfil();
+  const id = txt(fd, "id");
+  const ruta = `/panel/alumnos/${id}`;
+  const { error } = await supabase
+    .from("alumnos")
+    .update({
+      apellidos: txt(fd, "apellidos"),
+      nombres: txt(fd, "nombres"),
+      grado: opc(fd, "grado"),
+      seccion: opc(fd, "seccion")?.toUpperCase() ?? null,
+      dni: opc(fd, "dni"),
+      apoderado_nombre: opc(fd, "apoderado_nombre"),
+      apoderado_telefono: opc(fd, "apoderado_telefono"),
+    })
+    .eq("id", id);
+  revalidatePath(ruta);
+  volver(ruta, error ? { error: "No se pudo guardar." } : { ok: "Datos guardados." });
+}
+
+export async function programarCampana(fd: FormData) {
+  const { supabase } = await requirePerfil();
+  const mes = txt(fd, "mes");
+  const ruta = "/panel/calendario";
+  // Solo cambia las fechas que se llenaron; la otra se queda como estaba.
+  const cambios = Object.fromEntries((["fecha_captura", "fecha_entrega"] as const).filter((k) => txt(fd, k)).map((k) => [k, txt(fd, k)]));
+  if (Object.keys(cambios).length === 0) volver(ruta, { ...(mes ? { mes } : {}), error: "Elige al menos una fecha." });
+  const { error } = await supabase.from("campanas").update(cambios).eq("id", txt(fd, "campana_id"));
+  revalidatePath(ruta);
+  volver(ruta, { ...(mes ? { mes } : {}), ...(error ? { error: "No se pudo guardar." } : { ok: "Fechas guardadas." }) });
+}
