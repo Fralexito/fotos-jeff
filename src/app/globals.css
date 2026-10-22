@@ -1170,3 +1170,25 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 .equipo-acciones { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .equipo-acciones .btn { height: 30px; padding: 0 10px; font-size: 13px; }
 @media (max-width: 640px) { .item.equipo { flex-direction: column; align-items: stretch; gap: 10px; } .equipo-acciones { justify-content: flex-start; } }
+[data-modulo="asistente"] { --m: #a855f7; }
+.chat { display: flex; flex-direction: column; height: calc(100dvh - 230px); min-height: 460px; padding: 0; overflow: hidden; }
+.chat-mensajes { flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.chat-vacio { margin: auto; max-width: 560px; text-align: center; display: grid; justify-items: center; gap: 8px; }
+.chat-vacio h2 { margin: 6px 0 0; font-size: 20px; }
+.chat-vacio p { margin: 0; color: var(--muted); }
+.chat-logo { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, #a855f7, var(--brand)); box-shadow: 0 12px 26px -12px #a855f7; }
+.chat-sugerencias { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
+.chat-sugerencias button { border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 8px 14px; font-size: 13px; text-align: left; transition: background-color 160ms ease, border-color 160ms ease, transform 160ms var(--ease-out); }
+.chat-sugerencias button:hover { background: var(--brand-soft); border-color: var(--brand-line); color: var(--brand-ink); }
+.chat-sugerencias button:active { transform: scale(.97); }
+.burbuja { max-width: min(680px, 88%); padding: 11px 15px; border-radius: 16px; white-space: pre-wrap; line-height: 1.5; font-size: 14.5px; }
+.burbuja.usuario { align-self: flex-end; background: var(--brand); color: #fff; border-bottom-right-radius: 5px; }
+.burbuja.asistente { align-self: flex-start; background: var(--surface-2); border: 1px solid var(--line); border-bottom-left-radius: 5px; }
+.burbuja.pensando { display: flex; gap: 5px; padding: 15px 16px; }
+.burbuja.pensando span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: punto 1s ease-in-out infinite; }
+.burbuja.pensando span:nth-child(2) { animation-delay: .15s; } .burbuja.pensando span:nth-child(3) { animation-delay: .3s; }
+@keyframes punto { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+.chat-caja { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); background: var(--surface); }
+.chat-caja textarea { flex: 1; resize: none; height: 44px; padding: 11px 14px; font-family: inherit; }
+.chat-caja .btn { height: 44px; width: 48px; padding: 0; justify-content: center; }
+@media (max-width: 640px) { .chat { height: calc(100dvh - 250px); } .chat-mensajes { padding: 14px; } }
