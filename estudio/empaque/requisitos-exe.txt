@@ -8,5 +8,6 @@ numpy==1.26.4
 opencv-python-headless==4.10.0.84
 pymatting==1.1.12
 mediapipe==0.10.14
+matplotlib==3.9.2  # mediapipe lo importa al cargar
 onnxruntime==1.19.2
 pyinstaller==6.10.0

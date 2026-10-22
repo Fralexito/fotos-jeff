@@ -23,7 +23,7 @@ for paquete in ("mediapipe", "pymatting", "numba", "llvmlite", "onnxruntime"):
 a = Analysis([os.path.join(ESTUDIO, "main.py")],
              pathex=[ESTUDIO, os.path.join(REPO, "pipeline")],
              binaries=binaries, datas=datas, hiddenimports=hidden,
-             excludes=["torch", "torchvision", "transformers", "timm", "kornia", "tkinter", "matplotlib",
+             excludes=["torch", "torchvision", "transformers", "timm", "kornia", "tkinter",
                        "IPython", "pytest", "PySide6.QtWebEngineCore", "PySide6.Qt3DCore", "PySide6.QtQuick3D"],
              noarchive=False)
 pyz = PYZ(a.pure)
