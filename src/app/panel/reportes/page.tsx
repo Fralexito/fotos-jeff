@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Download, HandCoins, MapPin, Receipt, ShoppingBag, TrendingUp } from "lucide-react";
+import { Download, HandCoins, Send, MapPin, Receipt, ShoppingBag, TrendingUp } from "lucide-react";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
-import { S, whatsapp } from "@/lib/formato";
+import { ESTADO_PEDIDO, S, whatsapp } from "@/lib/formato";
 import { deudores } from "@/lib/reportes";
 import { NOMBRE_SEDE, SEDES, filtroSede } from "@/lib/sedes";
 import { Avatar, Empty, PageHeader, WhatsApp } from "@/components/ui";
+import { Apiladas, Barras, Dona } from "@/components/graficos";
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic"];
 
@@ -19,8 +20,8 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
 
   // Con una sede elegida arriba, todo se filtra a esa sede.
   let qCampanas = supabase.from("campanas").select("id, nombre, colegio_id, colegios!inner(nombre, sede)").eq("anio", anio);
-  let qPagos = supabase.from("pagos").select("monto, creado_en, pedidos!inner(sede)").eq("estado", "confirmado").gte("creado_en", desde).lt("creado_en", hasta);
-  let qGastos = supabase.from("movimientos_caja").select("monto, categoria, sede").eq("tipo", "egreso").gte("fecha", `${anio}-01-01`).lt("fecha", `${anio + 1}-01-01`);
+  let qPagos = supabase.from("pagos").select("monto, metodo, creado_en, pedidos!inner(sede)").eq("estado", "confirmado").gte("creado_en", desde).lt("creado_en", hasta);
+  let qGastos = supabase.from("movimientos_caja").select("monto, categoria, sede, fecha").eq("tipo", "egreso").gte("fecha", `${anio}-01-01`).lt("fecha", `${anio + 1}-01-01`);
   let qItems = supabase
     .from("pedido_items")
     .select("cantidad, precio_unitario, productos(nombre), pedidos!inner(estado, sede, campanas!inner(anio))")
@@ -38,8 +39,8 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
 
   const idsCamp = (campanas ?? []).map((c) => c.id);
   const { data: saldos } = idsCamp.length
-    ? await supabase.from("pedidos_saldo").select("campana_id, total, pagado, saldo, sede").in("campana_id", idsCamp).neq("estado", "anulado")
-    : { data: [] as { campana_id: string; total: number; pagado: number; saldo: number; sede: string }[] };
+    ? await supabase.from("pedidos_saldo").select("campana_id, estado, total, pagado, saldo, sede").in("campana_id", idsCamp).neq("estado", "anulado")
+    : { data: [] as { campana_id: string; estado: string; total: number; pagado: number; saldo: number; sede: string }[] };
 
   // Comparación entre sedes (solo cuando se ven todas).
   const porSede = SEDES.map(([id, nombre]) => {
@@ -69,7 +70,19 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
   );
   const cobrado = meses.reduce((s, m) => s + m, 0);
   const gastado = (gastos ?? []).reduce((s, g) => s + Number(g.monto), 0);
-  const maxMes = Math.max(...meses, 1);
+  const gastosMes = MESES.map((_, i) => (gastos ?? []).filter((g) => Number(String(g.fecha).slice(5, 7)) === i + 1).reduce((s, g) => s + Number(g.monto), 0));
+  const mesActual = anio === actual ? new Date().getMonth() : undefined;
+
+  // Para las donas: cómo pagan, en qué estado están los pedidos y en qué se gasta.
+  const METODO: Record<string, string> = { efectivo: "Efectivo", yape: "Yape", plin: "Plin", transferencia: "Transferencia", tarjeta: "Tarjeta" };
+  const sumaPor = <T,>(xs: T[], clave: (x: T) => string, valor: (x: T) => number) => {
+    const m = new Map<string, number>();
+    for (const x of xs) m.set(clave(x), (m.get(clave(x)) ?? 0) + valor(x));
+    return [...m.entries()].map(([nombre, v]) => ({ nombre, valor: v })).sort((a, b) => b.valor - a.valor);
+  };
+  const porMetodo = sumaPor(pagos ?? [], (p) => METODO[p.metodo] ?? p.metodo, (p) => Number(p.monto));
+  const porEstado = ["pendiente", "procesado", "en_impresion", "entregado"].map((e) => ({ nombre: ESTADO_PEDIDO[e][0], valor: (saldos ?? []).filter((x) => x.estado === e).length }));
+  const porGasto = sumaPor(gastos ?? [], (g) => g.categoria ?? "Otros", (g) => Number(g.monto));
 
   const productos = new Map<string, { cantidad: number; monto: number }>();
   for (const it of items ?? []) {
@@ -107,6 +120,9 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
       {!sede && (
         <div className="card">
           <div className="card-head"><div><h2>Por sede</h2><p>Campañas {anio}. Elige una sede arriba para ver solo esa.</p></div></div>
+          <div className="card-body">
+            <Apiladas series={["Cobrado", "Falta cobrar"]} filas={porSede.map((x) => ({ etiqueta: x.nombre, valores: [Math.max(x.vendido - x.debe, 0), x.debe] }))} />
+          </div>
           <div className="table-wrap">
             <table className="table">
               <thead><tr><th>Sede</th><th className="num">Pedidos</th><th className="num">Vendido</th><th className="num">Cobrado</th><th className="num">Gastos</th><th className="num">Debe</th></tr></thead>
@@ -129,17 +145,9 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
 
       <div className="grid-2">
         <div className="card">
-          <div className="card-head"><div><h2>Cobros por mes</h2><p>Dinero confirmado que entró cada mes de {anio}.</p></div></div>
+          <div className="card-head"><div><h2>Entró y salió cada mes</h2><p>Cobros confirmados y gastos de {anio}. Pasa el mouse por una barra para ver el monto.</p></div></div>
           <div className="card-body">
-            <div className="bars" role="img" aria-label={`Cobros por mes de ${anio}`}>
-              {meses.map((m, i) => (
-                <div className="bar" key={i} title={`${MESES[i]}: ${S(m)}`}>
-                  <span className="bar-val">{m > 0 ? (m >= 1000 ? `${(m / 1000).toFixed(1)}k` : Math.round(m)) : ""}</span>
-                  <span className="bar-fill" style={{ height: `${(m / maxMes) * 100}%`, animationDelay: `${i * 30}ms` }} />
-                  <span className="bar-label">{MESES[i]}</span>
-                </div>
-              ))}
-            </div>
+            <Barras series={["Entró (cobros)", "Salió (gastos)"]} grupos={MESES.map((m, i) => ({ etiqueta: m, valores: [meses[i], gastosMes[i]] }))} resaltar={mesActual} />
           </div>
         </div>
         <div className="card">
@@ -154,6 +162,21 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="graficos">
+        <div className="card">
+          <div className="card-head"><div><h2>Cómo pagan</h2><p>Cobros {anio} por método.</p></div></div>
+          <div className="card-body"><Dona partes={porMetodo} centro={{ valor: S(cobrado), texto: "cobrado" }} /></div>
+        </div>
+        <div className="card">
+          <div className="card-head"><div><h2>Estado de los pedidos</h2><p>Campañas {anio}, sin anulados.</p></div></div>
+          <div className="card-body"><Dona formato="num" partes={porEstado} centro={{ valor: String(porEstado.reduce((t, e) => t + e.valor, 0)), texto: "pedidos" }} /></div>
+        </div>
+        <div className="card">
+          <div className="card-head"><div><h2>En qué se gasta</h2><p>Gastos {anio} por categoría.</p></div></div>
+          <div className="card-body"><Dona partes={porGasto} centro={{ valor: S(gastado), texto: "gastado" }} /></div>
         </div>
       </div>
 
@@ -186,7 +209,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
       <div className="card" id="deudores">
         <div className="card-head">
           <div><h2>Quién debe</h2><p>Todos los pedidos con saldo, de mayor a menor. El botón manda un recordatorio amable por WhatsApp.</p></div>
-          {lista.length > 0 && <Link className="btn wa sm" href="/panel/cobros/whatsapp">Cobrar a todos por WhatsApp</Link>}
+          {lista.length > 0 && <Link className="btn wa sm" href="/panel/cobros/whatsapp"><Send className="i" /> Cobrar a todos por WhatsApp</Link>}
           {lista.length > 0 && <a className="btn secondary sm" href="/panel/reportes/deudores" download><Download className="i" /> Descargar Excel</a>}
         </div>
         {lista.length === 0 ? <Empty icon={HandCoins} title="Nadie debe">Todos los pedidos están pagados.</Empty> : (
