@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, ChartColumn, Factory, Handshake, LayoutDashboard, Package, School, Settings, Vault, Wallet } from "lucide-react";
+import { Boxes, ChartColumn, Factory, Handshake, LayoutDashboard, Package, School, Settings, Sheet, Vault, Wallet } from "lucide-react";
 import { puede, requirePerfil } from "@/lib/auth";
 import { PageHeader } from "@/components/ui";
 
@@ -10,6 +10,7 @@ export default async function Mas() {
     { href: "/panel", t: "Inicio", d: "Resumen del día", I: LayoutDashboard, ok: true },
     { href: "/panel/clientes", t: "Clientes", d: "Embudo, contactos y recordatorios", I: Handshake, ok: puede(perfil, "clientes") },
     { href: "/panel/colegios", t: "Colegios y alumnos", d: "Campañas y listas", I: School, ok: true },
+    { href: "/panel/tabla", t: "Tabla general", d: "Todo ordenado como en Excel", I: Sheet, ok: true },
     { href: "/panel/produccion", t: "Producción", d: "Edición, impresión y entregas", I: Factory, ok: true },
     { href: "/panel/cobros", t: "Cobros", d: "Quién pagó y quién debe", I: Wallet, ok: puede(perfil, "cobros") },
     { href: "/panel/caja", t: "Caja", d: "Ingresos, gastos y cierre", I: Vault, ok: puede(perfil, "caja") },

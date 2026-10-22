@@ -28,6 +28,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       ? [{ href: "/panel/clientes", texto: "Clientes", icono: "clientes", count: tareasHoy ?? 0, movil: true } as ItemNav]
       : []),
     { href: "/panel/colegios", texto: "Colegios y alumnos", icono: "colegios" },
+    { href: "/panel/tabla", texto: "Tabla general", icono: "tabla" },
     { href: "/panel/produccion", texto: "Producción", icono: "produccion", movil: true },
   ];
   const ventas: ItemNav[] = [];
