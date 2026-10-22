@@ -10,9 +10,10 @@ const WA = '51900000000'
 const SEDES = {
   nauta: { n: 'Nauta', enc: 'Jefferson Gómez Tuesta', wa: '51900000000', tel: '900 000 000' },
   iquitos: { n: 'Iquitos', enc: 'Liz Nery Gómez Ríos', wa: '51900000001', tel: '900 000 001' },
+  iquitos2: { n: 'Iquitos', enc: 'Dan Jefferson Gómez Ríos', wa: '51900000002', tel: '900 000 002' },
 }
 const ZONAS = ['En la ciudad', 'Carretera Iquitos–Nauta', 'Pueblo o comunidad por el río']
-const sedeLine = (sede, z, lugar) => `[Sede ${SEDES[sede].n}] ` + (z && z !== ZONAS[0] ? `Pido desde: ${z}${lugar ? ` (${lugar.trim()})` : ''}. ` : '')
+const sedeLine = (sede, z, lugar) => `[Sede ${SEDES[sede].n} · ${SEDES[sede].enc}] ` + (z && z !== ZONAS[0] ? `Pido desde: ${z}${lugar ? ` (${lugar.trim()})` : ''}. ` : '')
 function SedeFields({ sede, setSede, z, lugar, set, idp }) {
   return (
     <>
@@ -169,7 +170,9 @@ function Header({ route }) {
       <div className="util">
         <span className="ph"><Phone /><span>Sede Nauta<br /><b>{SEDES.nauta.tel}</b> (ejemplo)</span></span>
         <span className="vr" />
-        <span className="ph ph2"><Phone /><span>Sede Iquitos<br /><b>{SEDES.iquitos.tel}</b> (ejemplo)</span></span>
+        <span className="ph ph2"><Phone /><span>Iquitos · Liz Nery<br /><b>{SEDES.iquitos.tel}</b> (ejemplo)</span></span>
+        <span className="vr ph2" />
+        <span className="ph ph2"><Phone /><span>Iquitos · Dan Jefferson<br /><b>{SEDES.iquitos2.tel}</b> (ejemplo)</span></span>
         <nav className="unav" aria-label="Accesos">
           <Link to="proceso" className="opt">Cómo trabajamos</Link>
           <Link to="nosotros" className="opt">Nosotros</Link>
@@ -224,7 +227,7 @@ function Footer() {
         <div className="big">Fotos Jefferson<span>.</span></div>
         <div className="cols">
           <div><h4>Páginas</h4><ul>{PAGES.map(([k, l]) => <li key={k}><Link to={k}>{l}</Link></li>)}</ul></div>
-          <div><h4>Sedes</h4><ul><li>Sede Nauta · Jefferson Gómez Tuesta</li><li>Sede Iquitos · Liz Nery Gómez Ríos</li><li>Carretera Iquitos–Nauta y pueblos por el río</li></ul></div>
+          <div><h4>Sedes</h4><ul><li>Sede Nauta · Jefferson Gómez Tuesta</li><li>Sede Iquitos · Liz Nery Gómez Ríos</li><li>Sede Iquitos · Dan Jefferson Gómez Ríos</li><li>Carretera Iquitos–Nauta y pueblos por el río</li></ul></div>
           <div><h4>Pagos</h4><ul><li>Yape</li><li>Plin</li><li>Efectivo</li></ul></div>
         </div>
         <div className="bot"><span>© 2026 Fotos Jefferson</span><span>Fotografía escolar en Nauta e Iquitos</span></div>
@@ -650,7 +653,7 @@ function About() {
             </motion.div>
             <Rise className="txt" d={0.1}>
               <h2>Décadas guardando los recuerdos de Nauta.</h2>
-              <p className="lead" style={{ marginTop: 18 }}>Fotos Jefferson empezó como el estudio de un fotógrafo que iba colegio por colegio. Hoy la familia sigue ese trabajo en dos sedes: Nauta, a cargo de Jefferson Gómez Tuesta, e Iquitos, a cargo de Liz Nery Gómez Ríos. Ahora con edición profesional, catálogo en línea y pagos por Yape y Plin.</p>
+              <p className="lead" style={{ marginTop: 18 }}>Fotos Jefferson empezó como el estudio de un fotógrafo que iba colegio por colegio. Hoy la familia sigue ese trabajo en tres sedes: Nauta, a cargo de Jefferson Gómez Tuesta, y dos en Iquitos, a cargo de Liz Nery Gómez Ríos y de Dan Jefferson Gómez Ríos. Ahora con edición profesional, catálogo en línea y pagos por Yape y Plin.</p>
               <span className="ph-note">Texto de ejemplo: aquí va la historia real de Don Jeff</span>
             </Rise>
           </div>
@@ -698,10 +701,10 @@ function Contact({ form, setForm, picked, plan, mode, setMode, sede, setSede }) 
         <div className="wrap contact">
           <div className="info">
             {Object.entries(SEDES).map(([k, v], i) => (
-              <Rise key={k} d={i * 0.06} className={`tile sedecard ${i ? 'blue' : 'yellow'}`}>
+              <Rise key={k} d={i * 0.06} className={`tile sedecard ${['yellow', 'blue', 'red'][i]}`}>
                 <span className="k">Sede {v.n}</span><b>{v.enc}</b>
                 <span className="sd">Encargado(a) · WhatsApp {v.tel} (ejemplo)</span>
-                <a className="pill lt" href={`https://wa.me/${v.wa}`} target="_blank" rel="noopener" onClick={() => setSede(k)}>Escribir a {v.n}</a>
+                <a className="pill lt" href={`https://wa.me/${v.wa}`} target="_blank" rel="noopener" onClick={() => setSede(k)}>Escribir a {v.enc.split(' ')[0]}</a>
               </Rise>
             ))}
             <Rise d={0.12} className="tile cream"><span className="k">También atendemos</span><b>Carretera Iquitos–Nauta y pueblos por el río</b><span className="sd">Elige la sede más cercana y dinos desde dónde pides.</span></Rise>

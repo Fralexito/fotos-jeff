@@ -717,3 +717,7 @@ input[type=range]::-webkit-slider-thumb{background:var(--gold)}
 .lvwrap{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px}
 .lvwrap .grid{grid-template-columns:1fr 1fr}
 @media (max-width:1000px){.lvwrap{grid-template-columns:1fr}}
+.sedes{grid-template-columns:repeat(3,1fr)}
+.sedes button small{font-size:11px}
+@media (max-width:640px){.sedes{grid-template-columns:1fr}.sedes button{flex-direction:row;gap:8px;align-items:baseline}}
+@media (max-width:1180px){.util .ph2,.util .vr.ph2{display:none}}
