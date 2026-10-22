@@ -85,7 +85,7 @@ export default async function Produccion({
             vacio="No hay colegios con pedidos abiertos."
             filas={(campanas ?? []).map((c) => {
               const listos = pedidos.filter((p) => p.campana_id === c.id && p.estado === "en_impresion").length;
-              return { key: c.id, href: `/panel/produccion?vista=entregas&campana=${c.id}`, titulo: colegioDe(c), sub: c.nombre, valor: `${listos} ${listos === 1 ? "listo" : "listos"}`, tono: listos ? "bien" as const : "suave" as const };
+              return { key: c.id, href: `/panel/produccion?vista=entregas&campana=${c.id}`, titulo: colegioDe(c), avatar: colegioDe(c), sub: c.nombre, valor: `${listos} ${listos === 1 ? "listo" : "listos"}`, tono: listos ? "bien" as const : "suave" as const };
             })}
           />
         </div>

@@ -116,7 +116,7 @@ export default async function Clientes({
         <SimpleLista
           vacio="No hay colegios en camino."
           filas={abiertas.map((o) => ({
-            key: o.id, titulo: o.colegios?.nombre ?? o.colegio_nombre ?? o.titulo,
+            key: o.id, titulo: o.colegios?.nombre ?? o.colegio_nombre ?? o.titulo, avatar: o.colegios?.nombre ?? o.colegio_nombre ?? o.titulo,
             sub: [ETAPA[o.etapa]?.[0] ?? o.etapa, o.contacto_nombre].filter(Boolean).join(" · "),
             valor: o.monto_estimado ? S(o.monto_estimado) : undefined, tono: "suave" as const,
             href: whatsapp(o.telefono, `Hola ${(o.contacto_nombre ?? "").split(" ")[0]}, le saluda Fotos Jefferson.`) ?? undefined,

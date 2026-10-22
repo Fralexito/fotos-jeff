@@ -3,6 +3,7 @@ import { ChevronRight, HandCoins, Search, ShoppingBag } from "lucide-react";
 import { puede, requirePerfil } from "@/lib/auth";
 import { Avatar, Empty, PageHeader } from "@/components/ui";
 import { SimpleLista, SimpleTitulo } from "@/components/simple";
+import { BusquedaViva } from "@/components/busqueda-viva";
 
 type AlumnoEncontrado = {
   id: string;
@@ -43,18 +44,14 @@ export default async function Buscar({ searchParams }: { searchParams: Promise<{
     return (
       <div className="simple">
         <SimpleTitulo titulo="Buscar" sub={texto ? `${nCol + nAlu} ${nCol + nAlu === 1 ? "resultado" : "resultados"} para “${texto}”` : "Escribe el apellido del alumno o el colegio"} />
-        <form action="/panel/buscar" className="bigsearch" role="search">
-          <Search className="i" />
-          <input name="q" defaultValue={texto} autoFocus={!texto} placeholder="Apellido o colegio" aria-label="Buscar" />
-          <button className="btn lg" type="submit">Buscar</button>
-        </form>
+        <BusquedaViva autoFocus placeholder="Apellido, nombre o colegio" />
         {texto && (
           <SimpleLista
             vacio="No encontramos nada. Prueba solo con el apellido."
             filas={[
-              ...(colegios?.data ?? []).map((c) => ({ key: c.id, href: `/panel/colegios/${c.id}`, titulo: c.nombre, sub: `Colegio · ${c.ciudad}` })),
+              ...(colegios?.data ?? []).map((c) => ({ key: c.id, href: `/panel/colegios/${c.id}`, titulo: c.nombre, avatar: c.nombre, sub: `Colegio · ${c.ciudad}` })),
               ...(alumnos?.data ?? []).map((a) => ({
-                key: a.id, href: `/panel/alumnos/${a.id}`, titulo: `${a.apellidos}, ${a.nombres}`,
+                key: a.id, href: `/panel/alumnos/${a.id}`, titulo: `${a.apellidos}, ${a.nombres}`, avatar: `${a.nombres} ${a.apellidos}`,
                 sub: [a.campanas?.colegios?.nombre, a.grado && `${a.grado} ${a.seccion ?? ""}`].filter(Boolean).join(" · "),
               })),
             ]}
@@ -71,13 +68,7 @@ export default async function Buscar({ searchParams }: { searchParams: Promise<{
         title={texto ? `Resultados para “${texto}”` : "Buscar un alumno o colegio"}
         subtitle={texto ? `${nCol + nAlu} ${nCol + nAlu === 1 ? "resultado" : "resultados"}` : "También puedes usar la barra de arriba en cualquier pantalla."}
       />
-      {!texto && (
-        <form action="/panel/buscar" className="bigsearch" role="search">
-          <Search className="i" />
-          <input name="q" autoFocus placeholder="Escribe un apellido, nombre, código o colegio" aria-label="Buscar" />
-          <button className="btn lg" type="submit">Buscar</button>
-        </form>
-      )}
+      <BusquedaViva autoFocus placeholder="Escribe un apellido, nombre, código o colegio" />
       {texto && nCol + nAlu === 0 && (
         <div className="card">
           <Empty icon={Search} title="No encontramos nada">Revisa la ortografía o prueba solo con el apellido.</Empty>

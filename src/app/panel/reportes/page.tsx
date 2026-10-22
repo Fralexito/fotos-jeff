@@ -115,7 +115,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
         <h2 className="simple-sub">Los que más deben</h2>
         <SimpleLista
           vacio="Nadie debe. ¡Todo cobrado!"
-          filas={lista.slice(0, 10).map((d) => ({ key: d.id, href: `/panel/alumnos/${d.alumnoId}`, titulo: d.alumno, sub: [d.colegio, d.salon].filter(Boolean).join(" · "), valor: S(d.saldo), tono: "debe" as const }))}
+          filas={lista.slice(0, 10).map((d) => ({ key: d.id, href: `/panel/alumnos/${d.alumnoId}`, titulo: d.alumno, avatar: d.alumno, sub: [d.colegio, d.salon].filter(Boolean).join(" · "), valor: S(d.saldo), tono: "debe" as const }))}
         />
         <div className="simple-acciones">
           {[actual - 1, actual].filter((y) => y !== anio).map((y) => <Link key={y} className="btn secondary" href={`/panel/reportes?anio=${y}`}>Ver {y}</Link>)}

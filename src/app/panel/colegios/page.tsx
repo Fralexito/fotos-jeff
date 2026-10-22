@@ -10,9 +10,10 @@ import { ArbolColegios, type ColegioArbol } from "./arbol";
 import { crearColegio } from "../actions";
 import { SimpleLista, SimpleTitulo } from "@/components/simple";
 import { S } from "@/lib/formato";
+import { BusquedaViva } from "@/components/busqueda-viva";
 
-export default async function Colegios({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; nuevo?: string }> }) {
-  const { nuevo, ...aviso } = await searchParams;
+export default async function Colegios({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string; nuevo?: string; q?: string }> }) {
+  const { nuevo, q = "", ...aviso } = await searchParams;
   const { supabase, perfil } = await requirePerfil();
   const sede = filtroSede(perfil.preferencias.sede);
   let consulta = supabase
@@ -29,17 +30,14 @@ export default async function Colegios({ searchParams }: { searchParams: Promise
     return (
       <div className="simple">
         <SimpleTitulo titulo="Colegios" />
-        <form action="/panel/buscar" className="bigsearch">
-          <Search />
-          <input name="q" placeholder="Buscar alumno o colegio" aria-label="Buscar" />
-        </form>
+        <BusquedaViva placeholder="Buscar colegio o ciudad" />
         <SimpleLista
-          vacio="Aún no hay colegios. Pídele a tu equipo que los agregue."
-          filas={(colegios ?? []).map((c) => {
+          vacio={q ? "No hay colegios con ese nombre." : "Aún no hay colegios. Pídele a tu equipo que los agregue."}
+          filas={(colegios ?? []).filter((c) => !q || `${c.nombre} ${c.ciudad}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))).map((c) => {
             const suyos = alumnos.filter((a) => a.colegioId === c.id);
             const debe = suyos.reduce((t, a) => t + a.saldo, 0);
             return {
-              key: c.id, titulo: c.nombre, href: `/panel/colegios/${c.id}`,
+              key: c.id, titulo: c.nombre, avatar: c.nombre, href: `/panel/colegios/${c.id}`,
               sub: `${suyos.length} ${suyos.length === 1 ? "alumno" : "alumnos"} · ${c.ciudad}${debe > 0 ? " · le deben" : ""}`,
               valor: debe > 0 ? S(debe) : undefined, tono: "debe" as const,
             };

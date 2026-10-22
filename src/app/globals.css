@@ -1375,3 +1375,163 @@ a.simple-item:active { transform: scale(.98); }
   .simple-si-no { grid-template-columns: 1fr; }
   .simple-numeros:has(> :nth-child(3):last-child) b { font-size: 28px; }
 }
+
+/* ================================================================ Capa premium
+   Profundidad suave, colores vivos, entradas escalonadas y respuesta al tocar.
+   Todo respeta "menos movimiento" del sistema (regla de prefers-reduced-motion más arriba). */
+:root, .app, .auth {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --r-xl: 22px;
+  --sombra-1: 0 1px 1px rgba(10, 30, 36, .04), 0 2px 6px -2px rgba(10, 30, 36, .06), 0 10px 24px -14px rgba(10, 30, 36, .16);
+  --sombra-2: 0 1px 1px rgba(10, 30, 36, .05), 0 6px 14px -4px rgba(10, 30, 36, .10), 0 22px 40px -18px rgba(10, 30, 36, .28);
+  --brillo: inset 0 1px 0 rgba(255, 255, 255, .7);
+}
+.app[data-tema="oscuro"] { --brillo: inset 0 1px 0 rgba(255, 255, 255, .05); --sombra-1: 0 1px 0 rgba(0,0,0,.3), 0 10px 24px -14px rgba(0,0,0,.6); --sombra-2: 0 22px 40px -18px rgba(0,0,0,.75); }
+
+/* Fondo con luz de color muy suave */
+.app main { background:
+  radial-gradient(900px 420px at 8% -8%, color-mix(in oklab, var(--brand) 13%, transparent), transparent 70%),
+  radial-gradient(700px 380px at 100% 0%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%),
+  var(--bg); background-attachment: fixed; }
+
+/* Entrada de cada pantalla */
+@keyframes entrar { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes entrar-escala { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+.pagina { animation: entrar 360ms var(--ease-out) both; }
+.simple > * { animation: entrar 420ms var(--ease-out) both; }
+.simple > *:nth-child(2) { animation-delay: 40ms; } .simple > *:nth-child(3) { animation-delay: 80ms; }
+.simple > *:nth-child(4) { animation-delay: 120ms; } .simple > *:nth-child(5) { animation-delay: 160ms; }
+.simple > *:nth-child(n+6) { animation-delay: 200ms; }
+.simple-lista > *, .simple-numeros > *, .simple-botones > *, .mas-grid > * { animation: entrar-escala 420ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 35ms + 60ms); }
+.simple-numeros > :nth-child(2), .simple-botones > :nth-child(2) { --i: 1; } .simple-numeros > :nth-child(3), .simple-botones > :nth-child(3) { --i: 2; }
+.mas-grid > :nth-child(2) { --i: 1; } .mas-grid > :nth-child(3) { --i: 2; } .mas-grid > :nth-child(4) { --i: 3; } .mas-grid > :nth-child(n+5) { --i: 4; }
+
+/* Títulos */
+.simple-hola h1 { font-weight: 800; letter-spacing: -.03em; background: linear-gradient(120deg, var(--ink) 30%, color-mix(in oklab, var(--brand) 70%, var(--ink))); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.simple-volver { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px 6px 6px; margin-bottom: 6px; border-radius: 99px; background: color-mix(in srgb, var(--surface) 80%, transparent); border: 1px solid var(--hairline); box-shadow: var(--sombra-1); font-weight: 600; transition: transform 160ms var(--ease-out); }
+.simple-volver:active { transform: scale(.96); }
+.simple-sub { font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 10px 0 -8px 4px; }
+.simple-sub small { text-transform: none; letter-spacing: 0; font-weight: 600; }
+
+/* Tarjetas y filas: más aire, esquinas redondas y sombra en capas */
+.simple-item, .simple-fila, .simple-numeros > *, .simple-botones a, .simple-cierre, .simple-vacio, .mas-grid a, .card {
+  border-color: var(--hairline); box-shadow: var(--sombra-1), var(--brillo);
+}
+.simple-item, .simple-fila { border-radius: var(--r-xl); padding: 16px 18px; }
+.simple-fila { padding: 0; }
+.simple-item { position: relative; transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 160ms ease, background-color 160ms ease; }
+a.simple-item:active, .simple-check:active, .simple-fila summary:active, .mas-grid a:active { transform: scale(.975); }
+@media (hover: hover) and (pointer: fine) {
+  a.simple-item:hover, .simple-fila:hover, .mas-grid a:hover, .simple-numeros a:hover, .simple-botones a:hover { transform: translateY(-2px); box-shadow: var(--sombra-2), var(--brillo); border-color: color-mix(in srgb, var(--brand) 30%, transparent); }
+  a.simple-item:hover .flecha { transform: translateX(3px); color: var(--brand); }
+}
+.simple-item .flecha { transition: transform 200ms var(--ease-out), color 160ms ease; }
+
+/* Avatar de iniciales */
+.simple-av { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 15px; font-weight: 800; font-size: 16px; letter-spacing: .02em;
+  color: oklch(0.42 0.12 var(--h)); background: linear-gradient(145deg, oklch(0.95 0.05 var(--h)), oklch(0.88 0.08 var(--h)));
+  box-shadow: inset 0 0 0 1px oklch(0.8 0.08 var(--h) / .5); }
+.app[data-tema="oscuro"] .simple-av { color: oklch(0.88 0.1 var(--h)); background: linear-gradient(145deg, oklch(0.36 0.08 var(--h)), oklch(0.28 0.06 var(--h))); box-shadow: none; }
+
+/* Montos como pastillas de color */
+.simple-item .valor.debe, .simple-item .valor.bien { padding: 6px 12px; border-radius: 99px; font-size: 17px; }
+.simple-item .valor.debe { background: var(--warn-soft); }
+.simple-item .valor.bien { background: var(--good-soft); }
+.simple-fila .debe { padding: 6px 12px; border-radius: 99px; background: var(--warn-soft); font-size: 18px; }
+
+/* Números: el primero es la tarjeta protagonista */
+.simple-numeros > * { border-radius: 24px; position: relative; overflow: hidden; }
+.simple-numeros > :first-child { color: #fff; border: 0;
+  background: radial-gradient(120% 140% at 100% 0%, color-mix(in oklab, var(--accent) 55%, transparent), transparent 55%), linear-gradient(140deg, var(--hero-1), color-mix(in oklab, var(--brand) 70%, var(--hero-1)));
+  box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--brand) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.18); }
+.simple-numeros > :first-child small { color: color-mix(in srgb, #fff 78%, transparent); }
+.simple-numeros > :first-child b, .simple-numeros > :first-child b.debe, .simple-numeros > :first-child b.neutro { color: #fff; }
+.simple-numeros > :first-child::after { content: ""; position: absolute; inset: -40% -10% auto auto; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.22), transparent 70%); pointer-events: none; }
+.simple-numeros b { font-weight: 800; letter-spacing: -.03em; }
+
+/* Botones grandes */
+.simple-botones a { border-radius: var(--r-xl); border: 1px solid var(--hairline); background: var(--surface); }
+.simple-botones a svg { padding: 10px; width: 52px !important; height: 52px !important; border-radius: 16px; background: var(--brand-soft); box-sizing: border-box; }
+.simple-botones a.principal { background: linear-gradient(140deg, color-mix(in oklab, var(--brand) 82%, white), var(--brand) 55%, var(--brand-hover)); box-shadow: 0 16px 34px -14px color-mix(in srgb, var(--brand) 85%, transparent), inset 0 1px 0 rgba(255,255,255,.25); }
+.simple-botones a.principal svg { background: rgba(255,255,255,.18); }
+.btn { transition: transform 160ms var(--ease-out), background-color 160ms ease, box-shadow 200ms ease, border-color 160ms ease; }
+.btn:active { transform: scale(.97); }
+.simple-acciones .btn:not(.secondary):not(.wa), .simple-fijo .btn { background: linear-gradient(140deg, color-mix(in oklab, var(--brand) 82%, white), var(--brand) 55%, var(--brand-hover)); box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--brand) 85%, transparent), inset 0 1px 0 rgba(255,255,255,.25); }
+.simple-fila .cobrar { background: linear-gradient(140deg, color-mix(in oklab, var(--brand) 82%, white), var(--brand)); box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--brand) 80%, transparent); transition: transform 160ms var(--ease-out); }
+.simple-fijo .btn { backdrop-filter: blur(8px); }
+
+/* Desplegable de Cobrar: se abre suave */
+.simple-fila[open] { border-color: color-mix(in srgb, var(--brand) 35%, transparent); box-shadow: var(--sombra-2), var(--brillo); }
+.simple-fila[open] .simple-pago { animation: entrar 280ms var(--ease-out) both; }
+.simple-pago .metodos button { transition: transform 140ms var(--ease-out), background-color 160ms ease; }
+.simple-pago .metodos button:active { transform: scale(.95); }
+
+/* Buscador vivo */
+.bigsearch.viva { position: relative; }
+.bigsearch.viva input { box-shadow: var(--sombra-1), var(--brillo); border: 1px solid var(--hairline); transition: box-shadow 200ms ease, border-color 160ms ease; padding-right: 52px; }
+.bigsearch.viva input:focus { outline: none; border-color: color-mix(in srgb, var(--brand) 55%, transparent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 16%, transparent), var(--sombra-1); }
+.bigsearch.viva .limpiar { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--muted); cursor: pointer; }
+.bigsearch.viva .limpiar svg { width: 18px; height: 18px; position: static; }
+.bigsearch.viva:has(.btn) .limpiar { right: 140px; }
+.bigsearch.compacto { flex: 1; min-width: 240px; }
+.bigsearch.compacto input { height: 42px; font-size: 14px; }
+.bigsearch.compacto > svg:first-child { top: 12px; }
+@keyframes girar { to { transform: rotate(360deg); } }
+.girando { animation: girar 700ms linear infinite; color: var(--brand); }
+.app:has(.viva[data-cargando]) .simple-lista, .app:has(.viva[data-cargando]) .simple-sub { opacity: .55; transition: opacity 160ms ease; }
+
+/* Menú de abajo en celular: barra flotante de vidrio */
+@media (max-width: 900px) {
+  .side { inset: auto 12px 12px 12px !important; border-radius: 26px; padding: 6px !important;
+    background: color-mix(in srgb, var(--side-2) 82%, transparent) !important; backdrop-filter: blur(18px) saturate(1.6);
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08) !important; }
+  .navlink { border-radius: 20px; transition: background-color 200ms ease, color 200ms ease, transform 160ms var(--ease-out); }
+  .navlink:active { transform: scale(.94); }
+  .navlink[aria-current="page"] { background: color-mix(in srgb, var(--accent) 20%, transparent) !important; color: #fff; }
+  .navlink[aria-current="page"]::before { display: none; }
+  .navlink[aria-current="page"] svg { transform: translateY(-1px) scale(1.08); transition: transform 240ms var(--ease-out); }
+  .content { padding-bottom: 120px !important; }
+  .simple-fijo { bottom: 96px !important; }
+  .simple-item, .simple-fila summary { padding: 14px 14px; gap: 12px; }
+  .simple-fila { padding: 0; }
+  .simple-av { width: 42px; height: 42px; border-radius: 13px; font-size: 15px; }
+  .simple-item .valor.debe, .simple-item .valor.bien { font-size: 15px; padding: 5px 10px; }
+  .simple-hola h1 { font-size: 30px; }
+}
+
+/* Barra de arriba: vidrio */
+.topbar { background: color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter: blur(18px) saturate(1.6); }
+.switch .track { transition: background-color 200ms ease; }
+.switch .thumb { transition: transform 260ms var(--ease-out); }
+
+/* Fotos: tarjetas con más presencia */
+.simple-fotos .foto { border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--sombra-1); transition: transform 200ms var(--ease-out), box-shadow 200ms ease; }
+.simple-fotos .foto:active { transform: scale(.98); }
+
+/* Casilla de entrega marcada: rebote corto */
+.simple-check input { transition: transform 160ms var(--ease-out); }
+.simple-check input:checked { transform: scale(1.08); }
+
+/* Más cosas: cuadritos con icono de color */
+.mas-grid a { border-radius: var(--r-xl); transition: transform 200ms var(--ease-out), box-shadow 200ms ease, border-color 160ms ease; }
+.mas-grid a .ico { background: linear-gradient(145deg, var(--brand-soft), color-mix(in oklab, var(--accent) 30%, var(--surface))); border-radius: 14px; }
+
+/* Esqueleto de carga con brillo que pasa */
+.sk { position: relative; overflow: hidden; }
+.sk::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: brillo 1.2s ease-in-out infinite; }
+@keyframes brillo { to { transform: translateX(100%); } }
+.bigsearch input { min-width: 0; }
+.simple > *, .simple-dia > *, .simple-lista > * { min-width: 0; }
+.simple-numeros:has(> :nth-child(3):last-child) { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.simple-numeros:has(> :nth-child(3):last-child) b { font-size: clamp(24px, 2.4vw, 32px); }
+.simple-numeros b { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .simple-item:has(.valor) .flecha { display: none; }
+  .simple-av { width: 38px; height: 38px; border-radius: 12px; font-size: 14px; }
+  .simple-item .quien b { font-size: 16.5px; }
+  .simple-item .quien small { font-size: 14px; }
+}
+.simple-numeros:has(> :nth-child(3):last-child) b { font-size: 26px; white-space: nowrap; overflow-wrap: normal; }
+.simple-numeros:has(> :nth-child(3):last-child) > * { padding: 20px 20px; }
+@media (max-width: 640px) { .simple-numeros:has(> :nth-child(3):last-child) b { font-size: 26px; } }
