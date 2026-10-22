@@ -29,7 +29,7 @@ class VentanaAvanzada(QMainWindow):
         super().__init__(padre)
         self.e = estado
         self.setStyleSheet(QSS)
-        self.setWindowTitle("FOTOS JEFFERSON Estudio · Herramientas")
+        self.setWindowTitle("Fotos Studio J · Herramientas")
         self.resize(1440, 900)
         self.setMinimumSize(1100, 700)
         raiz = QWidget()
@@ -117,7 +117,7 @@ class Ventana(QMainWindow):
     def __init__(self, estado):
         super().__init__()
         self.e = estado
-        self.setWindowTitle("FOTOS JEFFERSON Estudio")
+        self.setWindowTitle("Fotos Studio J")
         self.resize(1440, 900)
         self.setMinimumSize(1000, 660)
         self._avanzada: VentanaAvanzada | None = None
@@ -169,7 +169,7 @@ class Ventana(QMainWindow):
         logo.setStyleSheet(f"background: {CL['tinta']}; color: {CL['oro_claro']}; border-radius: 12px;"
                            "font-size: 15px; font-weight: 800;")
         h.addWidget(logo)
-        marca = QLabel("FOTOS JEFFERSON")
+        marca = QLabel("Fotos Studio J")
         marca.setObjectName("marca")
         h.addWidget(marca)
         self.migas = QLabel()

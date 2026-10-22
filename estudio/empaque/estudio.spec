@@ -1,4 +1,4 @@
-# PyInstaller: FOTOS JEFFERSON Estudio (carpeta, sin consola). Se arma en GitHub Actions (Windows).
+# PyInstaller: Fotos Studio J (carpeta, sin consola). Se arma en GitHub Actions (Windows).
 #   pyinstaller --noconfirm estudio/empaque/estudio.spec
 import os
 
@@ -28,6 +28,6 @@ a = Analysis([os.path.join(ESTUDIO, "main.py")],
                        "IPython", "pytest", "PySide6.QtWebEngineCore", "PySide6.Qt3DCore", "PySide6.QtQuick3D"],
              noarchive=False)
 pyz = PYZ(a.pure)
-exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="FOTOS JEFFERSON Estudio",
+exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="Fotos Studio J",
           icon=os.path.join(AQUI, "icono.ico"), console=False, upx=False)
-coll = COLLECT(exe, a.binaries, a.datas, name="FOTOS JEFFERSON Estudio", upx=False)
+coll = COLLECT(exe, a.binaries, a.datas, name="Fotos Studio J", upx=False)

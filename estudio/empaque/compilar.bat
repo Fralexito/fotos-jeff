@@ -1,16 +1,16 @@
 @echo off
 chcp 65001 >nul
-title Compilar FOTOS JEFFERSON Estudio
+title Compilar Fotos Studio J
 setlocal
 REM Arma el programa y su instalador en esta PC (lo mismo que hace GitHub).
-REM Resultado: dist\FOTOS-JEFFERSON-Estudio-Setup-local.exe en la carpeta del repositorio.
+REM Resultado: dist\Fotos-Studio-J-Setup-local.exe en la carpeta del repositorio.
 set "AQUI=%~dp0"
 pushd "%AQUI%..\.."
 set "RAIZ=%CD%"
 set "VENV=%RAIZ%\.venv-compilar"
 
 echo.
-echo  Compilar FOTOS JEFFERSON Estudio
+echo  Compilar Fotos Studio J
 echo  ================================
 echo.
 
@@ -49,7 +49,7 @@ echo  [4/6] Armando el programa ^(10 a 15 minutos^)...
 "%PYV%" -m PyInstaller --noconfirm --clean --distpath dist --workpath build "%AQUI%estudio.spec" || goto :error
 
 echo  [5/6] Probando el programa armado...
-start "" /wait "dist\FOTOS JEFFERSON Estudio\FOTOS JEFFERSON Estudio.exe" --autoprueba "%TEMP%\fj_autoprueba.json"
+start "" /wait "dist\Fotos Studio J\Fotos Studio J.exe" --autoprueba "%TEMP%\fj_autoprueba.json"
 type "%TEMP%\fj_autoprueba.json"
 findstr /c:"\"ok\": true" "%TEMP%\fj_autoprueba.json" >nul || goto :error
 
@@ -58,12 +58,12 @@ set "ISCC=%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe"
 if not exist "%ISCC%" set "ISCC=%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe"
 if not exist "%ISCC%" (
   echo  No está Inno Setup 6 ^(https://jrsoftware.org/isdl.php^). El programa ya quedó en:
-  echo    %RAIZ%\dist\FOTOS JEFFERSON Estudio\FOTOS JEFFERSON Estudio.exe
+  echo    %RAIZ%\dist\Fotos Studio J\Fotos Studio J.exe
   goto :fin
 )
 "%ISCC%" /DVersion=local "%AQUI%instalador.iss" || goto :error
 echo.
-echo  Listo: %RAIZ%\dist\FOTOS-JEFFERSON-Estudio-Setup-local.exe
+echo  Listo: %RAIZ%\dist\Fotos-Studio-J-Setup-local.exe
 
 :fin
 popd

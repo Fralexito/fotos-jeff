@@ -1,4 +1,4 @@
-"""FOTOS JEFFERSON Estudio: programa de PC para organizar, editar y preparar las fotos escolares."""
+"""Fotos Studio J (antes "FOTOS JEFFERSON Estudio"): programa de PC para organizar, editar y preparar las fotos escolares."""
 from __future__ import annotations
 
 import getpass
@@ -30,7 +30,7 @@ def elegir_biblioteca(ajustes: QSettings, forzar: bool) -> str | None:
     if actual and os.path.isdir(actual) and not forzar:
         return actual
     m = QMessageBox()
-    m.setWindowTitle("FOTOS JEFFERSON Estudio")
+    m.setWindowTitle("Fotos Studio J")
     m.setText("¿Dónde guardo la biblioteca de fotos?\n\nAhí van las copias de la cámara, las fotos editadas y todo "
               "el orden. Conviene un disco con mucho espacio.")
     usar = m.addButton(f"Usar {CARPETA_DEFECTO}", QMessageBox.AcceptRole)
@@ -112,6 +112,7 @@ def main():
         return autoprueba(sys.argv[sys.argv.index("--autoprueba") + 1])
     QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
+    # nombre interno de antes: con él siguen valiendo los ajustes guardados (carpeta de la biblioteca)
     app.setApplicationName("FOTOS JEFFERSON Estudio")
     app.setOrganizationName("FOTOS JEFFERSON")
     app.setStyle("Fusion")
@@ -130,7 +131,7 @@ def main():
         base = Base(raiz, usuario=getpass.getuser())
     except Exception as e:
         registro.log.exception("abrir base")
-        QMessageBox.critical(None, "FOTOS JEFFERSON Estudio",
+        QMessageBox.critical(None, "Fotos Studio J",
                              f"No pude abrir la biblioteca.\n\n{registro.en_palabras(e)}\n\n"
                              "Hay copias diarias de la base en la carpeta _copias_base.")
         return 1
