@@ -29,6 +29,7 @@ function SedeFields({ sede, setSede, z, lugar, set, idp }) {
 const EASE = [0.22, 1, 0.36, 1]
 const PAGES = [
   ['', 'Inicio'], ['catalogo', 'Catálogo'], ['precios', 'Precios'], ['proceso', 'Cómo trabajamos'], ['nosotros', 'Nosotros'], ['contacto', 'Contacto'],
+  ['pedido', 'Mi pedido'], ['fotos', 'Elige tu foto'], ['reservar', 'Reservar sesión'],
 ]
 const LEVELS = [
   ['inicial', 'Inicial', 'Para los más pequeños: su primera promoción.', 'yellow'],
@@ -173,6 +174,7 @@ function Header({ route }) {
         <span className="vr ph2" />
         <span className="ph ph2"><Phone /><span>Iquitos · Dan Jefferson<br /><b>{SEDES.iquitos2.tel}</b></span></span>
         <nav className="unav" aria-label="Accesos">
+          <Link to="pedido">Mi pedido</Link>
           <Link to="proceso" className="opt">Cómo trabajamos</Link>
           <Link to="nosotros" className="opt">Nosotros</Link>
           <Link to="contacto">Contacto</Link>
@@ -376,6 +378,13 @@ function Home({ mode, setMode, setLevel, picked, sede, setSede }) {
               )
             })}
           </div>
+        </div>
+      </section>
+
+      <section style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div className="sec-t"><Words text="Todo desde tu celular" /><Rise as="p">Sigue tu pedido, elige tu foto o reserva la sesión del colegio.</Rise></div>
+          <Tools />
         </div>
       </section>
 
@@ -754,6 +763,280 @@ function Contact({ form, setForm, picked, plan, mode, setMode, sede, setSede }) 
   )
 }
 
+/* ---------- herramientas: mi pedido, elegir foto, reservar, asistente ---------- */
+const ESTADOS = [
+  ['Sesión de fotos', 'Tomamos las fotos en el colegio.'],
+  ['Edición', 'Recortamos, corregimos el color y retocamos.'],
+  ['Impresión y enmarcado', 'Imprimimos y armamos tu cuadro.'],
+  ['Listo para recoger', 'Te avisamos por WhatsApp.'],
+  ['Entregado', 'Gracias por confiar en nosotros.'],
+]
+// pedidos de ejemplo: luego se leen del sistema del estudio
+const DEMO_PEDIDOS = {
+  'FJ-0001': { al: 'Lucía P.', col: 'Colegio de ejemplo · 5.º B', item: 'Cuadro de promoción 20 × 30', sede: 'nauta', e: 2, fecha: 'en unos 5 días', saldo: 30 },
+  'FJ-0002': { al: 'Mateo R.', col: 'Colegio de ejemplo · 6.º A', item: 'Paquete Recuerdo', sede: 'iquitos', e: 3, fecha: 'ya puedes recogerlo', saldo: 0 },
+}
+const waTo = (sede, m) => `https://wa.me/${SEDES[sede].wa}?text=${encodeURIComponent(m)}`
+const Tools = () => (
+  <div className="tools">
+    {[['pedido', 'Mi pedido', '¿Cómo va mi cuadro? Míralo con tu código.', 'blue'], ['fotos', 'Elige tu foto', 'Mira las fotos de tu salón y escoge la mejor.', 'yellow'], ['reservar', 'Reservar sesión', 'Para colegios: elige el día en el calendario.', 'red']].map(([k, t, d, c], i) => (
+      <motion.a key={k} href={'#/' + k} className={`tool tile ${c}`} onClick={e => { e.preventDefault(); go(k) }}
+        initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} whileHover={{ y: -4 }} transition={{ duration: 0.6, delay: i * 0.07, ease: EASE }}>
+        <h3>{t}</h3><p>{d}</p><span className="circ sm"><Arrow /></span>
+      </motion.a>
+    ))}
+  </div>
+)
+
+function Order({ sede }) {
+  const [code, setCode] = useState('')
+  const [res, setRes] = useState(null)
+  const find = e => {
+    e.preventDefault()
+    const c = code.trim().toUpperCase().replace(/\s+/g, '').replace(/^FJ(?=\d)/, 'FJ-')
+    if (!c) return
+    setRes({ c, p: DEMO_PEDIDOS[c] })
+  }
+  const p = res?.p
+  return (
+    <div className="page">
+      <div className="wrap"><PageHead n="06" crumb="Mi pedido" title="Mi pedido" lead="Escribe el código de tu boleta y mira en qué paso va tu cuadro." /></div>
+      <section style={{ paddingTop: 8 }}>
+        <div className="wrap tool-grid">
+          <Rise as="form" className="form" onSubmit={find}>
+            <h3>Buscar mi pedido</h3>
+            <p className="hint">El código está en tu boleta o en el WhatsApp que te mandamos.</p>
+            <div className="f"><label htmlFor="oc">Código del pedido</label><input id="oc" placeholder="Ej. FJ-0001" value={code} onChange={e => setCode(e.target.value)} autoCapitalize="characters" /></div>
+            <button className="pill" type="submit">Ver mi pedido</button>
+            <p className="safe">Prueba con los códigos de ejemplo FJ-0001 o FJ-0002.</p>
+          </Rise>
+          <AnimatePresence mode="wait">
+            {!res ? (
+              <motion.div key="e" className="tcard empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div className="tl">{ESTADOS.map(([t], i) => <div key={t} className="st"><i>{i + 1}</i><b>{t}</b></div>)}</div>
+                <p className="muted">Así se ve el avance de tu pedido, paso por paso.</p>
+              </motion.div>
+            ) : p ? (
+              <motion.div key={res.c} className="tcard" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="thead"><div><span className="k">Pedido {res.c} · ejemplo</span><b>{p.item}</b><small>{p.al} · {p.col} · Sede {SEDES[p.sede].n}</small></div>
+                  <span className={`badge2 ${p.e >= 3 ? 'ok' : ''}`}>{ESTADOS[p.e][0]}</span></div>
+                <div className="tl">{ESTADOS.map(([t, d], i) => (
+                  <motion.div key={t} className={`st ${i < p.e ? 'done' : i === p.e ? 'now' : ''}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.08 }}>
+                    <i>{i < p.e ? '✓' : i + 1}</i><div><b>{t}</b>{i === p.e && <small>{d}</small>}</div>
+                  </motion.div>
+                ))}</div>
+                <div className="tfoot">
+                  <span>Entrega: <b>{p.fecha}</b></span>
+                  <span>Saldo: <b>{p.saldo ? 'S/' + p.saldo : 'Pagado'}</b></span>
+                </div>
+                <a className="pill lt" href={waTo(p.sede, `Hola, consulto por mi pedido ${res.c} (${p.al}).`)} target="_blank" rel="noopener">Preguntar por WhatsApp</a>
+              </motion.div>
+            ) : (
+              <motion.div key={'n' + res.c} className="tcard" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <span className="k">Código {res.c}</span>
+                <b className="big2">Aún no lo vemos aquí</b>
+                <p className="muted">Puede que tu pedido todavía no esté cargado. Escríbenos y te decimos cómo va.</p>
+                <a className="pill" href={waTo(sede, `Hola, consulto por mi pedido ${res.c}.`)} target="_blank" rel="noopener">Consultar por WhatsApp</a>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function Gallery({ sede }) {
+  const [code, setCode] = useState('')
+  const [al, setAl] = useState('')
+  const [open, setOpen] = useState(false)
+  const [sel, setSel] = useState(-1)
+  const [size, setSize] = useState('20x30')
+  const [marco, setMarco] = useState('Madera')
+  const [err, setErr] = useState('')
+  const enter = e => {
+    e.preventDefault()
+    if (!code.trim() || !al.trim()) { setErr('Escribe el código del salón y el nombre del alumno.'); return }
+    setErr(''); setOpen(true); setSel(-1)
+  }
+  const send = () => window.open(waTo(sede, `Hola, ya elegí mi foto. Salón: ${code.trim().toUpperCase()}. Alumno(a): ${al.trim()}. Foto N.º ${sel + 1}, tamaño ${size.replace('x', ' × ')}, marco ${marco.toLowerCase()}.`), '_blank', 'noopener')
+  return (
+    <div className="page">
+      <div className="wrap"><PageHead n="07" crumb="Elige tu foto" title="Elige tu foto" lead="Después de la sesión te damos un código. Con él ves las fotos de tu hijo y escoges la que va al cuadro." /></div>
+      <section style={{ paddingTop: 8 }}>
+        <div className="wrap">
+          {!open ? (
+            <div className="tool-grid">
+              <Rise as="form" className="form" onSubmit={enter} noValidate>
+                <h3>Entrar a mis fotos</h3>
+                <p className="hint">Solo con el código que te damos. Las fotos de cada alumno son privadas.</p>
+                <div className="fg">
+                  <div className="f"><label htmlFor="gc">Código del salón</label><input id="gc" placeholder="Ej. DEMO" value={code} onChange={e => setCode(e.target.value)} /></div>
+                  <div className="f"><label htmlFor="ga">Nombre del alumno(a)</label><input id="ga" placeholder="Ej. Lucía Pérez" value={al} onChange={e => setAl(e.target.value)} /></div>
+                </div>
+                <button className="pill" type="submit">Ver mis fotos</button>
+                {err ? <p className="err" style={{ marginTop: 12 }}>{err}</p> : <p className="safe">Para probar, usa el código DEMO con cualquier nombre.</p>}
+              </Rise>
+              <Rise d={0.1} className="tcard">
+                <span className="k">Cómo funciona</span>
+                <ol className="howto">
+                  <li><b>Te damos un código</b> el día de la sesión.</li>
+                  <li><b>Miras las fotos</b> editadas de tu hijo, con marca de agua.</li>
+                  <li><b>Eliges una</b>, el tamaño y el marco.</li>
+                  <li><b>La mandas por WhatsApp</b> y la imprimimos sin marca de agua.</li>
+                </ol>
+              </Rise>
+            </div>
+          ) : (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <div className="gbar"><div><span className="k">Salón {code.trim().toUpperCase()} · fotos de ejemplo</span><b>{al.trim()}</b></div><button className="textlink" onClick={() => setOpen(false)}>Cambiar código</button></div>
+              <div className="proofs">
+                {[0, 1, 2, 3, 4, 5].map(i => (
+                  <motion.button key={i} type="button" className={`proof ${sel === i ? 'on' : ''}`} aria-pressed={sel === i} onClick={() => setSel(i)}
+                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} whileHover={{ y: -3 }}>
+                    <div className="pp"><Pt look={LOOKS[[1, 3, 5, 1, 3, 5][i]]} grad={i < 3} /><span className="wm" aria-hidden="true">{Array.from({ length: 6 }, (_, j) => <i key={j}>FOTOS JEFFERSON · PRUEBA</i>)}</span></div>
+                    <span className="pn">Foto {i + 1}{sel === i && ' · elegida'}</span>
+                  </motion.button>
+                ))}
+              </div>
+              <div className="gpick">
+                <div className="f"><label>Tamaño</label><div className="segs">{Object.keys(SIZES).map(s => <button key={s} type="button" className={size === s ? 'on' : ''} onClick={() => setSize(s)}>{s.replace('x', ' × ')}</button>)}</div></div>
+                <div className="f"><label>Marco</label><div className="segs">{['Madera', 'Dorado', 'Negro'].map(s => <button key={s} type="button" className={marco === s ? 'on' : ''} onClick={() => setMarco(s)}>{s}</button>)}</div></div>
+                <button className="pill" disabled={sel < 0} onClick={send}>{sel < 0 ? 'Toca una foto para elegirla' : `Enviar foto ${sel + 1} por WhatsApp`}</button>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+const DIAS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+function Calendar({ value, onChange }) {
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0)
+  const [m, setM] = useState(() => new Date(t0.getFullYear(), t0.getMonth(), 1))
+  const first = (m.getDay() + 6) % 7, days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate()
+  const canPrev = m > new Date(t0.getFullYear(), t0.getMonth(), 1)
+  return (
+    <div className="cal">
+      <div className="ch">
+        <button type="button" aria-label="Mes anterior" disabled={!canPrev} onClick={() => setM(new Date(m.getFullYear(), m.getMonth() - 1, 1))}>‹</button>
+        <b>{MESES[m.getMonth()]} {m.getFullYear()}</b>
+        <button type="button" aria-label="Mes siguiente" onClick={() => setM(new Date(m.getFullYear(), m.getMonth() + 1, 1))}>›</button>
+      </div>
+      <div className="cg">
+        {DIAS.map((d, i) => <span key={i} className="dw">{d}</span>)}
+        {Array.from({ length: first }, (_, i) => <span key={'b' + i} />)}
+        {Array.from({ length: days }, (_, i) => {
+          const d = new Date(m.getFullYear(), m.getMonth(), i + 1)
+          const off = d < t0 || d.getDay() === 0
+          const on = value && d.getTime() === value.getTime()
+          return <button type="button" key={i} disabled={off} className={on ? 'on' : ''} aria-pressed={on} onClick={() => onChange(d)}>{i + 1}</button>
+        })}
+      </div>
+      <p className="cn">Domingos sin sesiones. Te confirmamos el día por WhatsApp.</p>
+    </div>
+  )
+}
+
+function Booking({ sede, setSede }) {
+  const [date, setDate] = useState(null)
+  const [turno, setTurno] = useState('Mañana')
+  const [f, setF] = useState({ n: '', c: '', a: '', s: 'Promoción', cargo: 'Director(a)', w: '', z: ZONAS[0], lugar: '' })
+  const [state, setState] = useState('')
+  const set = k => e => setF({ ...f, [k]: e.target.value })
+  const submit = e => {
+    e.preventDefault()
+    if (!date || !f.n.trim() || !f.c.trim()) { setState('err'); return }
+    const fd = `${['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][date.getDay()]} ${date.getDate()} de ${MESES[date.getMonth()]}`
+    let msg = sedeLine(sede, f.z, f.lugar) + `Hola, soy ${f.n.trim()}, ${f.cargo.toLowerCase()} del colegio ${f.c.trim()}. Quiero reservar una sesión de ${f.s.toLowerCase()} el ${fd}, en la ${turno.toLowerCase()}.`
+    if (f.a) msg += ` Somos ${f.a} alumnos.`
+    if (f.w) msg += ` Mi WhatsApp: ${f.w}.`
+    window.open(waTo(sede, msg), '_blank', 'noopener'); setState('ok')
+  }
+  return (
+    <div className="page">
+      <div className="wrap"><PageHead n="08" crumb="Reservar" title="Reservar sesión" lead="Para directores, tutores y delegados. Elige el día y te confirmamos por WhatsApp." /></div>
+      <section style={{ paddingTop: 8 }}>
+        <div className="wrap tool-grid">
+          <Rise className="tcard"><span className="k">1 · Elige el día</span><Calendar value={date} onChange={d => { setDate(d); setState('') }} />
+            <div className="f" style={{ marginTop: 14 }}><label>Turno</label><div className="segs">{['Mañana', 'Tarde'].map(s => <button key={s} type="button" className={turno === s ? 'on' : ''} onClick={() => setTurno(s)}>{s === 'Mañana' ? 'Mañana · 8 a 12' : 'Tarde · 2 a 5'}</button>)}</div></div>
+          </Rise>
+          <Rise as="form" className="form" onSubmit={submit} noValidate d={0.08}>
+            <h3>2 · Datos del colegio</h3>
+            <p className="hint">{date ? <>Día elegido: <b>{date.getDate()} de {MESES[date.getMonth()]}</b>, {turno.toLowerCase()}.</> : 'Primero toca un día en el calendario.'}</p>
+            <div className="fg">
+              <SedeFields sede={sede} setSede={setSede} z={f.z} lugar={f.lugar} set={set} idp="b" />
+              <div className="f"><label htmlFor="bn">Tu nombre</label><input id="bn" value={f.n} onChange={set('n')} placeholder="Ej. Rosa Pérez" /></div>
+              <div className="f"><label htmlFor="bcg">Tu cargo</label><select id="bcg" value={f.cargo} onChange={set('cargo')}><option>Director(a)</option><option>Profesor(a) o tutor(a)</option><option>Padre o madre delegado(a)</option><option>Otro</option></select></div>
+              <div className="f"><label htmlFor="bc">Colegio</label><input id="bc" value={f.c} onChange={set('c')} placeholder="Ej. I.E. San Martín" /></div>
+              <div className="f"><label htmlFor="ba">N.º de alumnos</label><input id="ba" inputMode="numeric" value={f.a} onChange={set('a')} placeholder="Ej. 35" /></div>
+              <div className="f"><label htmlFor="bs">Servicio</label><select id="bs" value={f.s} onChange={set('s')}><option>Promoción</option><option>Graduación</option><option>Fotos carnet</option><option>Otro</option></select></div>
+              <div className="f"><label htmlFor="bw">Tu WhatsApp</label><input id="bw" inputMode="tel" value={f.w} onChange={set('w')} placeholder="9XX XXX XXX" /></div>
+            </div>
+            <button className="pill" type="submit">Reservar por WhatsApp</button>
+            {state === 'err' && <p className="err" style={{ marginTop: 12 }}>{!date ? 'Elige un día en el calendario.' : 'Escribe tu nombre y el colegio.'}</p>}
+            {state === 'ok' && <p className="ok" style={{ marginTop: 12 }}>Se abrió WhatsApp con tu reserva. Solo toca enviar.</p>}
+          </Rise>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/* asistente: respuestas fijas del estudio, sin IA; lo que no sabe lo pasa a WhatsApp */
+const BOT = [
+  { k: 'precios', q: 'Precios', re: /precio|cuesta|cuanto|cuánto|vale|costo|paquete/i, a: 'Los cuadros de promoción van desde S/40 y los paquetes desde S/45 (precios de ejemplo). Mira todo en Precios.', to: ['precios', 'Ver precios'] },
+  { k: 'demora', q: '¿Cuánto demora?', re: /demora|tarda|cuando|cuándo|entrega|listo/i, a: 'Normalmente entre 1 y 2 semanas después de la sesión, según la cantidad de alumnos.' },
+  { k: 'pedido', q: 'Ver mi pedido', re: /pedido|codigo|código|estado|seguimiento/i, a: 'Escribe el código de tu boleta en "Mi pedido" y ves en qué paso va.', to: ['pedido', 'Ir a Mi pedido'] },
+  { k: 'foto', q: 'Elegir mi foto', re: /elegir|escoger|ver.*foto|galer|prueba/i, a: 'Con el código del salón ves las fotos de tu hijo y eliges la mejor.', to: ['fotos', 'Elegir mi foto'] },
+  { k: 'reservar', q: 'Reservar sesión', re: /reserv|sesi|agenda|fecha|colegio/i, a: 'Si eres director, tutor o delegado, elige el día en el calendario y te confirmamos.', to: ['reservar', 'Reservar sesión'] },
+  { k: 'pago', q: 'Formas de pago', re: /pago|pagar|yape|plin|efectivo|adelanto/i, a: 'Aceptamos Yape, Plin y efectivo. Puedes dejar un adelanto para separar tu pedido.' },
+  { k: 'sedes', q: 'Sedes y WhatsApp', re: /sede|donde|dónde|direcci|nauta|iquitos|telefono|teléfono|whatsapp|numero|número/i, a: Object.values(SEDES).map(s => `${s.n}: ${s.enc.split(' ').slice(0, 2).join(' ')} · ${s.tel}`).join('\n') + '\nTambién atendemos la carretera Iquitos–Nauta y pueblos por el río.' },
+  { k: 'carnet', q: 'Fotos carnet', re: /carnet|dni|tramite|trámite|fotocheck/i, a: 'Sí, hacemos fotos carnet (juego de 8) y fotochecks. Escríbenos y te decimos el horario.' },
+]
+function Assistant({ sede }) {
+  const [open, setOpen] = useState(false)
+  const [msgs, setMsgs] = useState([{ b: 1, t: '¡Hola! Soy el asistente de FOTOS JEFFERSON. ¿En qué te ayudo?' }])
+  const [txt, setTxt] = useState('')
+  const end = useRef(null)
+  useEffect(() => { end.current?.scrollIntoView({ block: 'end' }) }, [msgs, open])
+  const answer = q => {
+    const hit = BOT.find(b => b.q === q) || BOT.find(b => b.re.test(q))
+    setMsgs(m => [...m, { t: q }, hit ? { b: 1, t: hit.a, to: hit.to } : { b: 1, t: 'Esa no la sé responder. Te paso con una persona del estudio por WhatsApp.', wa: q }])
+  }
+  const send = e => { e.preventDefault(); if (txt.trim()) { answer(txt.trim()); setTxt('') } }
+  return (
+    <>
+      <AnimatePresence>
+        {open && (
+          <motion.div className="chat" role="dialog" aria-label="Asistente" initial={{ opacity: 0, y: 20, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.96 }} transition={{ duration: 0.25, ease: EASE }}>
+            <div className="chd"><span className="av">FJ</span><div><b>Asistente</b><small>Respuestas al instante</small></div><button aria-label="Cerrar" onClick={() => setOpen(false)}>×</button></div>
+            <div className="cbody" data-lenis-prevent>
+              {msgs.map((m, i) => (
+                <motion.div key={i} className={`msg ${m.b ? 'bot' : 'me'}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+                  {m.t}
+                  {m.to && <a href={'#/' + m.to[0]} onClick={e => { e.preventDefault(); go(m.to[0]); setOpen(false) }}>{m.to[1]} →</a>}
+                  {m.wa && <a href={waTo(sede, m.wa)} target="_blank" rel="noopener">Escribir por WhatsApp →</a>}
+                </motion.div>
+              ))}
+              <div ref={end} />
+            </div>
+            <div className="cq">{BOT.map(b => <button key={b.k} onClick={() => answer(b.q)}>{b.q}</button>)}</div>
+            <form className="cin" onSubmit={send}><input aria-label="Escribe tu pregunta" placeholder="Escribe tu pregunta…" value={txt} onChange={e => setTxt(e.target.value)} /><button aria-label="Enviar">➤</button></form>
+            <a className="cwa" href={waTo(sede, 'Hola, tengo una consulta.')} target="_blank" rel="noopener">Hablar con una persona por WhatsApp</a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <button className="chatbtn" aria-label={open ? 'Cerrar asistente' : 'Abrir asistente'} aria-expanded={open} onClick={() => setOpen(o => !o)}>
+        {open ? <span style={{ fontSize: 28, lineHeight: 1 }}>×</span> : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" /><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" /></svg>}
+      </button>
+    </>
+  )
+}
+
 /* ---------- app ---------- */
 export default function App() {
   const reduce = useReducedMotion()
@@ -793,6 +1076,9 @@ export default function App() {
     precios: <Prices plan={plan} setPlan={setPlan} onSend={(p, n) => { setPlan(`${p.n} (S/${p.p})`); setForm(f => ({ ...f, a: String(n) })); setMode('col'); go('contacto') }} />,
     proceso: <Process />,
     nosotros: <About />,
+    pedido: <Order sede={sede} />,
+    fotos: <Gallery sede={sede} />,
+    reservar: <Booking sede={sede} setSede={setSede} />,
     contacto: <Contact form={form} setForm={setForm} picked={picked} plan={plan} mode={mode} setMode={setMode} sede={sede} setSede={setSede} />,
   }[route]
 
@@ -822,9 +1108,7 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-      <a className="wa" href={`https://wa.me/${SEDES[sede].wa}`} target="_blank" rel="noopener" aria-label="WhatsApp">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z" /></svg>
-      </a>
+      <Assistant sede={sede} />
     </MotionConfig>
   )
 }
