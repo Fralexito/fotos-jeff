@@ -30,19 +30,27 @@ export function Leyenda({ series, valores, formato = "soles" }: { series: string
 }
 
 // Barras verticales: una o varias series lado a lado, todas en la misma escala.
-export function Barras({ grupos, series, formato = "soles", alto = 200, resaltar }: {
+// Con `meta`, una línea punteada marca el objetivo; con `etiquetaCada`, solo se rotula una de cada n columnas.
+export function Barras({ grupos, series, formato = "soles", alto = 200, resaltar, meta, etiquetaCada = 1 }: {
   grupos: { etiqueta: string; valores: number[] }[]; series: string[]; formato?: Formato; alto?: number; resaltar?: number;
+  meta?: { valor: number; texto: string }; etiquetaCada?: number;
 }) {
-  const { tope, marcas } = escala(Math.max(0, ...grupos.flatMap((g) => g.valores)));
+  const { tope, marcas } = escala(Math.max(0, meta?.valor ?? 0, ...grupos.flatMap((g) => g.valores)));
   return (
     <figure className="g-barras" style={{ "--alto": `${alto}px` } as React.CSSProperties}>
-      {series.length > 1 && <Leyenda series={series} />}
+      {(series.length > 1 || meta) && (
+        <ul className="g-leyenda">
+          {series.map((s, i) => <li key={s}><span className="g-punto" style={{ background: color(i) }} />{s}</li>)}
+          {meta && <li><span className="g-raya" />{meta.texto} ({fmt(meta.valor, formato)})</li>}
+        </ul>
+      )}
       <div className="g-plano" role="img" aria-label={series.join(" y ")}>
         <div className="g-eje" aria-hidden>
           {marcas.map((m) => <span key={m} style={{ bottom: `${(m / tope) * 100}%` }}>{corto(m, formato)}</span>)}
         </div>
-        <div className={`g-columnas${grupos.length > 8 ? " muchas" : ""}`}>
+        <div className={`g-columnas${grupos.length > 8 ? " muchas" : ""}${etiquetaCada > 1 ? " ralas" : ""}`}>
           {marcas.map((m) => <span key={m} className="g-linea" style={{ bottom: `${(m / tope) * 100}%` }} aria-hidden />)}
+          {meta && meta.valor > 0 && <span className="g-meta" style={{ bottom: `${(meta.valor / tope) * 100}%` }} aria-hidden />}
           {grupos.map((g, gi) => (
             <div key={gi} className={`g-grupo${resaltar === gi ? " resaltado" : ""}`}>
               <div className="g-pila">
@@ -56,7 +64,7 @@ export function Barras({ grupos, series, formato = "soles", alto = 200, resaltar
                   />
                 ))}
               </div>
-              <span className="g-etq" data-corto={g.etiqueta.slice(0, 1)}>{g.etiqueta}</span>
+              <span className="g-etq" data-corto={g.etiqueta.slice(0, 1)}>{gi % etiquetaCada === 0 || resaltar === gi ? g.etiqueta : ""}</span>
             </div>
           ))}
         </div>
