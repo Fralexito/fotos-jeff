@@ -35,3 +35,4 @@ pipeline/salida/
 # Sistema
 .DS_Store
 Thumbs.db
+pipeline/motor.env

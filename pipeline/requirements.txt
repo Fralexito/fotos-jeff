@@ -6,3 +6,4 @@ pymatting
 # torch
 # transformers
 # mediapipe
+requests
