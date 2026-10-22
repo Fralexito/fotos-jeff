@@ -1,16 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CalendarPlus, ChevronRight, FolderOpen } from "lucide-react";
 import { requirePerfil } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
+import { Modal } from "@/components/modal";
+import { Empty, PageHeader } from "@/components/ui";
 import { TIPO_CAMPANA, fecha } from "@/lib/formato";
 import { crearCampana } from "../../actions";
 
 const ESTADO: Record<string, [string, string]> = {
-  planificada: ["Planificada", "p-info"],
-  en_captura: ["En toma de fotos", "p-warn"],
-  en_edicion: ["En edición", "p-warn"],
-  en_entrega: ["En entrega", "p-info"],
-  cerrada: ["Cerrada", "p-good"],
+  planificada: ["Planificada", "b-neutral"],
+  en_captura: ["En toma de fotos", "b-warn"],
+  en_edicion: ["En edición", "b-warn"],
+  en_entrega: ["En entrega", "b-info"],
+  cerrada: ["Cerrada", "b-good"],
 };
 
 export default async function Colegio({
@@ -24,68 +27,88 @@ export default async function Colegio({
   const { supabase } = await requirePerfil();
   const { data: colegio } = await supabase
     .from("colegios")
-    .select("*, campanas(id, nombre, tipo, anio, estado, fecha_captura, alumnos(count))")
+    .select("*, campanas(id, nombre, tipo, anio, estado, fecha_captura, fecha_entrega, alumnos(count))")
     .eq("id", id)
     .order("anio", { referencedTable: "campanas", ascending: false })
     .single();
   if (!colegio) notFound();
 
   const campanas = (colegio.campanas ?? []) as {
-    id: string; nombre: string; tipo: string; anio: number; estado: string; fecha_captura: string | null;
-    alumnos: { count: number }[];
+    id: string; nombre: string; tipo: string; anio: number; estado: string;
+    fecha_captura: string | null; fecha_entrega: string | null; alumnos: { count: number }[];
   }[];
+  const dia = (d: string | null) => (d ? fecha(d + "T12:00:00-05:00") : "—");
 
   return (
-    <section>
-      <Link className="back" href="/panel/colegios">← Colegios</Link>
-      <h1>{colegio.nombre}</h1>
-      <p className="lead">
-        {colegio.ciudad} · código {colegio.codigo}
-        {colegio.director && ` · Dir. ${colegio.director}`}
-        {colegio.contacto_nombre && ` · Contacto: ${colegio.contacto_nombre}`}
-        {colegio.contacto_telefono && ` (${colegio.contacto_telefono})`}
-      </p>
+    <>
+      <PageHeader
+        crumbs={[{ href: "/panel/colegios", label: "Colegios" }]}
+        title={colegio.nombre}
+        subtitle={`${colegio.ciudad} · código ${colegio.codigo}`}
+        actions={
+          <Modal label="Nueva campaña" title="Nueva campaña" icon={<CalendarPlus className="i" />}>
+            <form action={crearCampana} className="form">
+              <input type="hidden" name="colegio_id" value={colegio.id} />
+              <div className="fields">
+                <label className="field" style={{ gridColumn: "1 / -1" }}>Nombre<input name="nombre" required placeholder="Promoción 2026 - 5.º secundaria" /></label>
+                <label className="field">
+                  Tipo
+                  <select name="tipo" defaultValue="promocion">
+                    {Object.entries(TIPO_CAMPANA).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+                  </select>
+                </label>
+                <label className="field">Año<input name="anio" type="number" required defaultValue={new Date().getFullYear()} /></label>
+                <label className="field">Día de la toma<input name="fecha_captura" type="date" /></label>
+                <label className="field">Día de entrega<input name="fecha_entrega" type="date" /></label>
+              </div>
+              <div className="form-foot"><button className="btn" type="submit">Guardar campaña</button></div>
+            </form>
+          </Modal>
+        }
+      />
       <Aviso {...aviso} />
 
-      <details className="add card">
-        <summary className="btn">+ Nueva campaña</summary>
-        <form action={crearCampana} className="stack">
-          <input type="hidden" name="colegio_id" value={colegio.id} />
-          <div className="fields">
-            <label className="f">Nombre<input name="nombre" required placeholder="Promoción 2026 - 5.º secundaria" /></label>
-            <label className="f">
-              Tipo
-              <select name="tipo" defaultValue="promocion">
-                {Object.entries(TIPO_CAMPANA).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
-              </select>
-            </label>
-            <label className="f">Año<input name="anio" type="number" required defaultValue={new Date().getFullYear()} /></label>
-            <label className="f">Día de la toma<input name="fecha_captura" type="date" /></label>
-            <label className="f">Día de entrega<input name="fecha_entrega" type="date" /></label>
-          </div>
-          <div><button className="btn" type="submit">Guardar campaña</button></div>
-        </form>
-      </details>
-
-      <div className="card">
-        <h2>Campañas</h2>
-        {campanas.length === 0 && <p className="empty">Este colegio aún no tiene campañas.</p>}
-        {campanas.map((c) => {
-          const [texto, clase] = ESTADO[c.estado] ?? [c.estado, "p-info"];
-          return (
-            <div className="row" key={c.id}>
-              <Link className="grow" href={`/panel/campanas/${c.id}`}>
-                <b>{c.nombre}</b>
-                <div className="sub">
-                  {TIPO_CAMPANA[c.tipo]} · {c.alumnos[0]?.count ?? 0} alumnos
-                  {c.fecha_captura && ` · toma el ${fecha(c.fecha_captura + "T12:00:00-05:00")}`}
-                </div>
-              </Link>
-              <span className={`pill ${clase}`}>{texto}</span>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-head"><h2>Campañas</h2></div>
+          {campanas.length === 0 ? (
+            <Empty icon={FolderOpen} title="Sin campañas">Crea la primera con “Nueva campaña”.</Empty>
+          ) : (
+            <div className="list">
+              {campanas.map((c) => {
+                const [texto, clase] = ESTADO[c.estado] ?? [c.estado, "b-neutral"];
+                return (
+                  <Link className="item" key={c.id} href={`/panel/campanas/${c.id}`}>
+                    <div className="main">
+                      <div>
+                        <div className="title">{c.nombre}</div>
+                        <div className="meta">
+                          {TIPO_CAMPANA[c.tipo]} {c.anio} · {c.alumnos[0]?.count ?? 0} alumnos · toma {dia(c.fecha_captura)} · entrega {dia(c.fecha_entrega)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="end">
+                      <span className={`badge ${clase}`}>{texto}</span>
+                      <ChevronRight className="i chev" />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-          );
-        })}
+          )}
+        </div>
+        <div className="card">
+          <div className="card-head"><h2>Datos del colegio</h2></div>
+          <div className="card-body">
+            <dl className="info-list">
+              <div><dt>Director(a)</dt><dd>{colegio.director ?? "—"}</dd></div>
+              <div><dt>Contacto (comité / APAFA)</dt><dd>{colegio.contacto_nombre ?? "—"}</dd></div>
+              <div><dt>Teléfono</dt><dd>{colegio.contacto_telefono ?? "—"}</dd></div>
+              <div><dt>Dirección</dt><dd>{colegio.direccion ?? "—"}</dd></div>
+            </dl>
+          </div>
+        </div>
       </div>
-    </section>
+    </>
   );
 }

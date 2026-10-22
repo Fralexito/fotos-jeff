@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ClipboardPaste, ShoppingBag, UserPlus, Users } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
+import { Modal } from "@/components/modal";
+import { Avatar, Empty, PageHeader } from "@/components/ui";
 import { TIPO_CAMPANA } from "@/lib/formato";
 import { agregarAlumno, importarAlumnos } from "../../actions";
 
 type Alumno = {
   id: string; codigo: string; nombres: string; apellidos: string;
-  grado: string | null; seccion: string | null; apoderado_telefono: string | null;
+  grado: string | null; seccion: string | null; apoderado_nombre: string | null; apoderado_telefono: string | null;
 };
 
 export default async function Campana({
@@ -24,7 +27,7 @@ export default async function Campana({
     supabase.from("campanas").select("id, nombre, tipo, anio, colegios(id, nombre)").eq("id", id).single(),
     supabase
       .from("alumnos")
-      .select("id, codigo, nombres, apellidos, grado, seccion, apoderado_telefono")
+      .select("id, codigo, nombres, apellidos, grado, seccion, apoderado_nombre, apoderado_telefono")
       .eq("campana_id", id)
       .order("grado")
       .order("seccion")
@@ -37,79 +40,100 @@ export default async function Campana({
   // Agrupar por salón (grado + sección) para que la lista se lea como la del tutor.
   const salones = new Map<string, Alumno[]>();
   for (const a of alumnos ?? []) {
-    const k = [a.grado, a.seccion].filter(Boolean).join(" ") || "Sin salón";
+    const k = a.grado || a.seccion ? `${a.grado ?? ""}.º ${a.seccion ?? ""}`.trim() : "Sin salón";
     salones.set(k, [...(salones.get(k) ?? []), a]);
   }
   const hacePedidos = puede(perfil, "pedidos");
 
   return (
-    <section>
-      <Link className="back" href={`/panel/colegios/${colegio.id}`}>← {colegio.nombre}</Link>
-      <h1>{campana.nombre}</h1>
-      <p className="lead">
-        {TIPO_CAMPANA[campana.tipo]} {campana.anio} · {alumnos?.length ?? 0} alumnos en {salones.size} salones
-      </p>
+    <>
+      <PageHeader
+        crumbs={[
+          { href: "/panel/colegios", label: "Colegios" },
+          { href: `/panel/colegios/${colegio.id}`, label: colegio.nombre },
+        ]}
+        title={campana.nombre}
+        subtitle={`${TIPO_CAMPANA[campana.tipo]} ${campana.anio} · ${alumnos?.length ?? 0} alumnos en ${salones.size} ${salones.size === 1 ? "salón" : "salones"}`}
+        actions={
+          <>
+            <Modal label="Un alumno" title="Agregar alumno" variant="secondary" icon={<UserPlus className="i" />}>
+              <form action={agregarAlumno} className="form">
+                <input type="hidden" name="campana_id" value={campana.id} />
+                <div className="fields">
+                  <label className="field">Apellidos<input name="apellidos" required /></label>
+                  <label className="field">Nombres<input name="nombres" required /></label>
+                  <label className="field">Grado<input name="grado" placeholder="5" /></label>
+                  <label className="field">Sección<input name="seccion" placeholder="B" maxLength={3} /></label>
+                  <label className="field">DNI<input name="dni" inputMode="numeric" maxLength={8} /></label>
+                  <label className="field">Apoderado<input name="apoderado_nombre" /></label>
+                  <label className="field">Teléfono del apoderado<input name="apoderado_telefono" type="tel" /></label>
+                </div>
+                <div className="form-foot"><button className="btn" type="submit">Guardar alumno</button></div>
+              </form>
+            </Modal>
+            <Modal label="Pegar lista" title="Pegar lista de alumnos" icon={<ClipboardPaste className="i" />}>
+              <form action={importarAlumnos} className="form">
+                <input type="hidden" name="campana_id" value={campana.id} />
+                <label className="field">
+                  Lista desde Excel
+                  <span className="hint">
+                    Copia las filas en Excel y pégalas aquí. Columnas: Apellidos, Nombres, Grado, Sección, DNI, Apoderado,
+                    Teléfono. Solo apellidos y nombres son obligatorios.
+                  </span>
+                  <textarea name="lista" required placeholder={"Ruiz Tapullima\tAna Lucía\t5\tB\t71234567\tRosa Tapullima\t987654321"} />
+                </label>
+                <div className="form-foot"><button className="btn" type="submit">Agregar a la lista</button></div>
+              </form>
+            </Modal>
+          </>
+        }
+      />
       <Aviso {...aviso} />
 
-      <div className="toolbar">
-        <details className="add">
-          <summary className="btn">Pegar lista de alumnos</summary>
-          <form action={importarAlumnos} className="stack card">
-            <input type="hidden" name="campana_id" value={campana.id} />
-            <label className="f">
-              Lista
-              <span className="hint">
-                Copia las filas desde Excel y pégalas aquí. Columnas en este orden: Apellidos, Nombres, Grado, Sección, DNI,
-                Apoderado, Teléfono. Solo apellidos y nombres son obligatorios.
-              </span>
-              <textarea name="lista" required placeholder={"Ruiz Tapullima\tAna Lucía\t5\tB\t71234567\tRosa Tapullima\t987654321"} />
-            </label>
-            <div><button className="btn" type="submit">Agregar a la lista</button></div>
-          </form>
-        </details>
-        <details className="add">
-          <summary className="btn ghost">+ Un alumno</summary>
-          <form action={agregarAlumno} className="stack card">
-            <input type="hidden" name="campana_id" value={campana.id} />
-            <div className="fields">
-              <label className="f">Apellidos<input name="apellidos" required /></label>
-              <label className="f">Nombres<input name="nombres" required /></label>
-              <label className="f">Grado<input name="grado" placeholder="5" /></label>
-              <label className="f">Sección<input name="seccion" placeholder="B" maxLength={3} /></label>
-              <label className="f">DNI<input name="dni" inputMode="numeric" maxLength={8} /></label>
-              <label className="f">Apoderado<input name="apoderado_nombre" /></label>
-              <label className="f">Teléfono del apoderado<input name="apoderado_telefono" type="tel" /></label>
-            </div>
-            <div><button className="btn" type="submit">Guardar alumno</button></div>
-          </form>
-        </details>
-      </div>
-
       {salones.size === 0 && (
-        <div className="card"><p className="empty">Todavía no hay alumnos. Pega la lista del colegio para empezar.</p></div>
+        <div className="card">
+          <Empty icon={Users} title="Todavía no hay alumnos">Usa “Pegar lista” para cargar la lista del colegio desde Excel.</Empty>
+        </div>
       )}
       {[...salones].map(([salon, lista]) => (
         <div className="card" key={salon}>
-          <h2>{salon} · {lista.length} alumnos</h2>
-          <table className="list">
-            <thead>
-              <tr><th>Alumno</th><th>Código</th><th>Apoderado</th>{hacePedidos && <th />}</tr>
-            </thead>
-            <tbody>
-              {lista.map((a) => (
-                <tr key={a.id}>
-                  <td><b>{a.apellidos}</b>, {a.nombres}</td>
-                  <td className="money">{a.codigo}</td>
-                  <td>{a.apoderado_telefono ?? "—"}</td>
-                  {hacePedidos && (
-                    <td><Link className="btn small ghost" href={`/panel/pedidos/nuevo?alumno=${a.id}`}>Nuevo pedido</Link></td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="card-head">
+            <h2>{salon}</h2>
+            <span className="badge b-neutral">{lista.length} {lista.length === 1 ? "alumno" : "alumnos"}</span>
+          </div>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr><th>Alumno</th><th>Código</th><th>Apoderado</th>{hacePedidos && <th />}</tr>
+              </thead>
+              <tbody>
+                {lista.map((a) => (
+                  <tr key={a.id}>
+                    <td>
+                      <div className="person">
+                        <Avatar name={`${a.nombres} ${a.apellidos}`} />
+                        <span><b>{a.apellidos}</b><small>{a.nombres}</small></span>
+                      </div>
+                    </td>
+                    <td><span className="code">{a.codigo}</span></td>
+                    <td>
+                      {a.apoderado_nombre ?? ""}
+                      {a.apoderado_telefono ? <div className="meta" style={{ color: "var(--muted)", fontSize: 13 }}>{a.apoderado_telefono}</div> : !a.apoderado_nombre && "—"}
+                    </td>
+                    {hacePedidos && (
+                      <td className="num">
+                        <Link className="btn secondary sm" href={`/panel/pedidos/nuevo?alumno=${a.id}`}>
+                          <ShoppingBag className="i" /> Nuevo pedido
+                        </Link>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
-    </section>
+    </>
   );
 }

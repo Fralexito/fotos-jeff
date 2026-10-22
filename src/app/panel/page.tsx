@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { CalendarDays, ChevronRight, CircleAlert, HandCoins, PackageCheck, School, Wallet } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
 import { S, TIPO_CAMPANA, fecha, inicioDeHoyLima, saludo } from "@/lib/formato";
-import { IconoCobro, IconoColegio } from "@/components/iconos";
+import { Avatar, Empty, PageHeader } from "@/components/ui";
 
 export default async function Inicio() {
   const { supabase, perfil } = await requirePerfil();
@@ -18,7 +19,7 @@ export default async function Inicio() {
       : null,
     supabase
       .from("campanas")
-      .select("id, nombre, tipo, fecha_captura, colegios(nombre)")
+      .select("id, nombre, tipo, fecha_captura, colegios(nombre), alumnos(count)")
       .neq("estado", "cerrada")
       .order("fecha_captura", { ascending: true, nullsFirst: false })
       .limit(5),
@@ -26,77 +27,105 @@ export default async function Inicio() {
 
   const cobradoHoy = (hoy?.data ?? []).reduce((s, p) => s + Number(p.monto), 0);
   const porCobrar = (saldos?.data ?? []).reduce((s, p) => s + Number(p.saldo), 0);
-  const familiasConSaldo = saldos?.data?.length ?? 0;
+  const conSaldo = saldos?.data?.length ?? 0;
   const nVerificar = porVerificar?.count ?? 0;
+  const dia = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Lima" }).format(new Date());
+  const hoyTexto = dia.charAt(0).toUpperCase() + dia.slice(1);
 
   return (
-    <section>
-      <h1>
-        {saludo()}, {perfil.nombre.split(" ")[0]}
-      </h1>
-      <p className="lead">Esto es lo que pasa hoy en el estudio. Toque un botón grande para empezar.</p>
+    <>
+      <PageHeader
+        title={`${saludo()}, ${perfil.nombre.split(" ")[0]}`}
+        subtitle={hoyTexto}
+        actions={
+          veDinero && (
+            <Link className="btn" href="/panel/cobros">
+              <HandCoins className="i" /> Registrar un pago
+            </Link>
+          )
+        }
+      />
 
-      <div className="grid stats">
+      <div className="kpis">
         {veDinero && (
           <>
-            <div className="stat">
-              <div className="lbl">Cobrado hoy</div>
-              <div className="num">{S(cobradoHoy)}</div>
+            <div className="kpi">
+              <div className="top">Cobrado hoy <span className="ico"><Wallet className="i" /></span></div>
+              <div className="val">{S(cobradoHoy)}</div>
+              <div className="sub">Pagos confirmados desde las 0:00</div>
             </div>
-            <Link className="stat" href="/panel/cobros">
-              <div className="lbl">Por cobrar</div>
-              <div className="num">{S(porCobrar)}</div>
-              <div className="sub">{familiasConSaldo} pedidos con saldo</div>
+            <Link className="kpi" href="/panel/cobros">
+              <div className="top">Por cobrar <span className="ico warn"><HandCoins className="i" /></span></div>
+              <div className="val">{S(porCobrar)}</div>
+              <div className="sub">{conSaldo} {conSaldo === 1 ? "pedido con saldo" : "pedidos con saldo"}</div>
             </Link>
           </>
         )}
-        <div className="stat">
-          <div className="lbl">Listos para entregar</div>
-          <div className="num">{listos.count ?? 0}</div>
+        <div className="kpi">
+          <div className="top">Listos para entregar <span className="ico info"><PackageCheck className="i" /></span></div>
+          <div className="val">{listos.count ?? 0}</div>
+          <div className="sub">Pedidos ya impresos</div>
         </div>
         {nVerificar > 0 && (
-          <Link className="stat alert" href="/panel/cobros#verificar">
-            <div className="lbl">Pagos por verificar</div>
-            <div className="num">{nVerificar}</div>
+          <Link className="kpi alert" href="/panel/cobros#verificar">
+            <div className="top">Pagos por verificar <span className="ico bad"><CircleAlert className="i" /></span></div>
+            <div className="val">{nVerificar}</div>
+            <div className="sub">Yape o Plin por confirmar</div>
           </Link>
         )}
-      </div>
-
-      <div className="grid big">
-        {veDinero && (
-          <Link className="bigbtn primary" href="/panel/cobros">
-            <IconoCobro />
-            <b>Registrar un pago</b>
-            <span>Efectivo, Yape o Plin</span>
-          </Link>
-        )}
-        <Link className="bigbtn" href="/panel/colegios">
-          <IconoColegio />
-          <b>Colegios y alumnos</b>
-          <span>Listas, secciones y fechas</span>
-        </Link>
       </div>
 
       <div className="card">
-        <h2>Próximas sesiones</h2>
-        {(proximas.data ?? []).length === 0 && <p className="empty">No hay campañas abiertas todavía.</p>}
-        {(proximas.data ?? []).map((c) => {
-          const colegio = c.colegios as unknown as { nombre: string } | null;
-          return (
-            <div className="row" key={c.id}>
-              <Link className="grow" href={`/panel/campanas/${c.id}`}>
-                <b>
-                  {colegio?.nombre} · {c.nombre}
-                </b>
-                <div className="sub">{TIPO_CAMPANA[c.tipo]}</div>
-              </Link>
-              <span className={`pill ${c.fecha_captura ? "p-info" : "p-warn"}`}>
-                {c.fecha_captura ? fecha(c.fecha_captura + "T12:00:00-05:00") : "Sin fecha"}
-              </span>
-            </div>
-          );
-        })}
+        <div className="card-head">
+          <div>
+            <h2>Próximas sesiones</h2>
+            <p>Campañas abiertas ordenadas por día de toma</p>
+          </div>
+          <Link className="btn secondary sm" href="/panel/colegios">Ver colegios</Link>
+        </div>
+        {(proximas.data ?? []).length === 0 ? (
+          <Empty icon={CalendarDays} title="Sin campañas abiertas">Crea una campaña desde la ficha de un colegio.</Empty>
+        ) : (
+          <div className="list">
+            {(proximas.data ?? []).map((c) => {
+              const colegio = c.colegios as unknown as { nombre: string } | null;
+              const n = (c.alumnos as unknown as { count: number }[])[0]?.count ?? 0;
+              return (
+                <Link className="item" key={c.id} href={`/panel/campanas/${c.id}`}>
+                  <div className="main">
+                    <Avatar name={colegio?.nombre ?? c.nombre} square />
+                    <div>
+                      <div className="title">{colegio?.nombre}</div>
+                      <div className="meta">{c.nombre} · {TIPO_CAMPANA[c.tipo]} · {n} alumnos</div>
+                    </div>
+                  </div>
+                  <div className="end">
+                    {c.fecha_captura ? (
+                      <span className="badge b-info">{fecha(c.fecha_captura + "T12:00:00-05:00")}</span>
+                    ) : (
+                      <span className="badge b-warn">Sin fecha</span>
+                    )}
+                    <ChevronRight className="i chev" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </section>
+
+      <div className="quick">
+        <Link href="/panel/colegios">
+          <span className="ico"><School /></span>
+          <span><b>Colegios y alumnos</b><span>Listas, secciones y fechas</span></span>
+        </Link>
+        {veDinero && (
+          <Link href="/panel/cobros">
+            <span className="ico"><Wallet /></span>
+            <span><b>Cobros</b><span>Quién pagó y quién debe</span></span>
+          </Link>
+        )}
+      </div>
+    </>
   );
 }
