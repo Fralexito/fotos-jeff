@@ -36,3 +36,5 @@ pipeline/salida/
 .DS_Store
 Thumbs.db
 pipeline/motor.env
+estudio/**/__pycache__/
+estudio/.pytest_cache/
