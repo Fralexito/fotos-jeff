@@ -9,7 +9,7 @@ previa. Verde -> 'procesada'; amarillo o rojo -> 'excepcion' para que una person
 Uso (Windows, en la carpeta del motor):  python motor.py
 Config en motor.env (no se sube a GitHub):
     SUPABASE_URL=https://xxxx.supabase.co
-    SUPABASE_SERVICE_ROLE_KEY=...        # solo en esta PC, nunca en la web
+    SUPABASE_SERVICE_ROLE_KEY=...        # sb_secret_... (o la service_role antigua); solo en esta PC
     MODELO_ONNX=isnet.onnx               # opcional: PCs sin tarjeta gráfica
     MODELO_CARA=face_landmarker.task     # se descarga solo si falta
 """
@@ -56,7 +56,9 @@ class Supabase:
     def __init__(self, url: str, clave: str):
         self.url = url.rstrip("/")
         self.s = requests.Session()
-        self.s.headers.update({"apikey": clave, "Authorization": f"Bearer {clave}"})
+        self.s.headers["apikey"] = clave
+        if clave.startswith("eyJ"):  # clave antigua (JWT service_role); las nuevas sb_secret_ van solo en apikey
+            self.s.headers["Authorization"] = f"Bearer {clave}"
 
     def rpc(self, nombre: str, **args):
         r = self.s.post(f"{self.url}/rest/v1/rpc/{nombre}", json=args, timeout=30)
