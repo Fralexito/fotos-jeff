@@ -4,9 +4,10 @@ import { randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
-import { sedeValida } from "@/lib/sedes";
+import { SEDES, sedeValida } from "@/lib/sedes";
 import { leerPreferencias, type Preferencias } from "@/lib/preferencias";
 
+const SEDES_IDS = SEDES.map(([id]) => id);
 const txt = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const opc = (fd: FormData, k: string) => txt(fd, k) || null;
 
@@ -312,4 +313,14 @@ export async function programarCampana(fd: FormData) {
   const { error } = await supabase.from("campanas").update(cambios).eq("id", txt(fd, "campana_id"));
   revalidatePath(ruta);
   volver(ruta, { ...(mes ? { mes } : {}), ...(error ? { error: "No se pudo guardar." } : { ok: "Fechas guardadas." }) });
+}
+
+// Meta de cobros del mes para una sede (solo el dueño; la base de datos también lo exige).
+export async function guardarMeta(fd: FormData) {
+  const { supabase } = await requirePerfil(["dueno"]);
+  const mes = txt(fd, "mes");
+  const montos = SEDES_IDS.map((sede) => ({ sede, mes: `${mes}-01`, monto: Number(txt(fd, `meta_${sede}`) || 0) }));
+  const { error } = await supabase.from("metas").upsert(montos);
+  revalidatePath("/panel");
+  volver("/panel", error ? { error: "No se pudo guardar la meta." } : { ok: "Meta del mes guardada." });
 }

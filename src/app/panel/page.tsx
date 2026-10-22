@@ -1,13 +1,21 @@
-import { filtroSede } from "@/lib/sedes";
+import { SEDES, filtroSede } from "@/lib/sedes";
 import Link from "next/link";
-import { ArrowUpRight, Search, Truck, Boxes, CalendarDays, ChevronRight, CircleAlert, CircleCheck, Factory, HandCoins, Handshake, ListTodo, PackageCheck, School, Sparkles, Sun, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Search, Truck, Boxes, CalendarDays, Camera, ChevronRight, CircleAlert, CircleCheck, Factory, HandCoins, Handshake, ListTodo, PackageCheck, Sparkles, Sun, Target, Wallet } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
 import { S, TIPO_CAMPANA, fecha, saludo } from "@/lib/formato";
 import { Avatar, Empty } from "@/components/ui";
 import { Contador } from "@/components/contador";
-import { Sparkline } from "@/components/sparkline";
+import { Barras, Dona } from "@/components/graficos";
+import { Modal } from "@/components/modal";
+import { Aviso } from "@/components/aviso";
+import { tablero } from "@/lib/tablero";
+import { guardarMeta } from "./actions";
 
-export default async function Inicio() {
+const RANGOS = [7, 30, 60];
+
+export default async function Inicio({ searchParams }: { searchParams: Promise<{ dias?: string; ok?: string; error?: string }> }) {
+  const { dias: d, ...aviso } = await searchParams;
+  const rango = RANGOS.includes(Number(d)) ? Number(d) : 7;
   const { supabase, perfil } = await requirePerfil();
   const veDinero = puede(perfil, "cobros");
 
@@ -57,10 +65,6 @@ export default async function Inicio() {
     (semana?.data ?? []).filter((p) => diaLima(new Date(p.creado_en)) === d).reduce((s, p) => s + Number(p.monto), 0),
   );
   const cobradoHoy = porDia[6];
-  const cobradoSemana = porDia.reduce((a, b) => a + b, 0);
-  const letras = dias.map((d, i) =>
-    i === 6 ? "Hoy" : new Intl.DateTimeFormat("es-PE", { weekday: "narrow", timeZone: "UTC" }).format(new Date(d + "T12:00:00Z")),
-  );
   const porCobrar = (saldos?.data ?? []).reduce((s, p) => s + Number(p.saldo), 0);
   const conSaldo = saldos?.data?.length ?? 0;
   const nVerificar = porVerificar?.count ?? 0;
@@ -140,70 +144,184 @@ export default async function Inicio() {
     );
   }
 
+  // Vista completa: tablero con meta del mes, caja, cuatro tarjetas y gráficos.
+  const t = await tablero(supabase, sede, rango);
+  const esDueno = perfil.rol === "dueno";
+  const metasSede = esDueno ? (await supabase.from("metas").select("sede, monto").eq("mes", `${t.mes}-01`)).data ?? [] : [];
+  const avance = t.meta > 0 ? Math.min(t.ingresosMes / t.meta, 1) : 0;
+  const nombreMes = new Intl.DateTimeFormat("es-PE", { month: "long", timeZone: "UTC" }).format(new Date(`${t.mes}-15T12:00:00Z`));
+  const etiquetaDia = (dia: string) =>
+    dia === t.hoy ? "Hoy" : rango === 7
+      ? new Intl.DateTimeFormat("es-PE", { weekday: "short", timeZone: "UTC" }).format(new Date(dia + "T12:00:00Z"))
+      : `${Number(dia.slice(8))}/${Number(dia.slice(5, 7))}`;
+  const totalRango = t.serie.reduce((s, x) => s + x.monto, 0);
+  const totalDemanda = t.demanda.reduce((s, x) => s + x.n, 0);
+
   return (
     <>
-      <section className="hero">
-        <div className="hero-main">
-          <p className="hero-date">{hoyTexto}</p>
-          <h1>{saludo()}, {perfil.nombre.split(" ")[0]}</h1>
-          {veDinero ? (
-            <>
-              <div className="hero-label">Cobrado hoy</div>
-              <div className="hero-val"><Contador valor={cobradoHoy} soles /></div>
-              <div className="hero-sub">{S(cobradoSemana)} en los últimos 7 días</div>
-            </>
-          ) : (
-            <p className="hero-sub">Este es el resumen del estudio para hoy.</p>
-          )}
-          <div className="hero-actions">
-            {veDinero && (
-              <Link className="btn light" href="/panel/cobros">
-                <HandCoins className="i" /> Registrar un pago
-              </Link>
-            )}
-            <Link className="btn glass" href="/panel/hoy">
-              <Sun className="i" /> Resumen del día
-            </Link>
-            <Link className="btn glass" href="/panel/calendario">
-              <CalendarDays className="i" /> Calendario
-            </Link>
-          </div>
-        </div>
-        {veDinero && (
-          <div className="hero-chart">
-            <Sparkline datos={porDia} etiquetas={letras} />
-          </div>
-        )}
-        <Sparkles className="hero-deco" aria-hidden />
-      </section>
+      <Aviso {...aviso} />
+      {veDinero && nVerificar > 0 && (
+        <Link className="banner" href="/panel/cobros#verificar">
+          <CircleAlert className="i" />
+          <span><b>{nVerificar === 1 ? "Hay 1 pago de Yape o Plin" : `Hay ${nVerificar} pagos de Yape o Plin`} por confirmar.</b> Revisa el celular del negocio.</span>
+          <span className="banner-go">Revisar <ChevronRight className="i" /></span>
+        </Link>
+      )}
 
-      <div className="kpis">
+      <div className="tab-top">
+        <section className="hero tab-hero">
+          <div className="hero-main">
+            <p className="hero-date">{hoyTexto}</p>
+            <h1>{saludo()}, {perfil.nombre.split(" ")[0]}</h1>
+            <p className="hero-sub">
+              {t.tomasHoy > 0 ? <>Hoy tienes <b>{t.tomasHoy} {t.tomasHoy === 1 ? "toma programada" : "tomas programadas"}</b></> : "Hoy no hay tomas programadas"}
+              {" · "}{t.sesiones} {t.sesiones === 1 ? "campaña en proceso" : "campañas en proceso"}
+            </p>
+            <div className="hero-actions">
+              {veDinero && (
+                <Link className="btn light" href="/panel/cobros">
+                  <HandCoins className="i" /> Registrar un pago
+                </Link>
+              )}
+              <Link className="btn glass" href="/panel/hoy">
+                <Sun className="i" /> Resumen del día
+              </Link>
+              <Link className="btn glass" href="/panel/calendario">
+                <CalendarDays className="i" /> Calendario
+              </Link>
+            </div>
+          </div>
+          {veDinero && (
+            <div className="meta-box">
+              <div className="meta-anillo" style={{ "--p": avance } as React.CSSProperties} role="img" aria-label={`Meta del mes al ${Math.round(avance * 100)}%`}>
+                <svg viewBox="0 0 100 100" aria-hidden>
+                  <circle cx="50" cy="50" r="42" className="meta-fondo" />
+                  <circle cx="50" cy="50" r="42" className="meta-arco" pathLength={100} strokeDasharray={`${avance * 100} 100`} transform="rotate(-90 50 50)" />
+                </svg>
+                <span><b>{t.meta > 0 ? `${Math.round(avance * 100)}%` : "—"}</b><small>de la meta</small></span>
+              </div>
+              <div className="meta-txt">
+                <div className="hero-label">Meta de {nombreMes}</div>
+                <div className="meta-val">{t.meta > 0 ? S(t.meta) : "Sin meta"}</div>
+                <div className="hero-sub">
+                  {t.meta === 0 ? "Fija una meta para ver el avance" : t.ingresosMes >= t.meta ? "¡Meta cumplida!" : `Faltan ${S(t.meta - t.ingresosMes)}`}
+                </div>
+                {esDueno && (
+                  <Modal variant="secondary" label={t.meta > 0 ? "Cambiar meta" : "Fijar meta"} title={`Meta de ventas de ${nombreMes}`} icon={<Target className="i" />}>
+                    <form action={guardarMeta} className="form">
+                      <input type="hidden" name="mes" value={t.mes} />
+                      <p className="muted-text">Cuánto quieres cobrar este mes en cada sede. El tablero suma las sedes.</p>
+                      {SEDES.map(([id, nombre]) => (
+                        <label key={id} className="field">
+                          <span>{nombre}</span>
+                          <input name={`meta_${id}`} type="number" min="0" step="10" inputMode="decimal" placeholder="0"
+                            defaultValue={Number(metasSede.find((m) => m.sede === id)?.monto ?? 0) || ""} />
+                        </label>
+                      ))}
+                      <button className="btn">Guardar meta</button>
+                    </form>
+                  </Modal>
+                )}
+              </div>
+            </div>
+          )}
+          <Sparkles className="hero-deco" aria-hidden />
+        </section>
+
         {veDinero && (
-          <Link className="kpi" href="/panel/cobros">
-            <div className="top">Por cobrar <span className="ico warn"><HandCoins className="i" /></span></div>
-            <div className="val"><Contador valor={porCobrar} soles /></div>
-            <div className="sub">{conSaldo} {conSaldo === 1 ? "pedido con saldo" : "pedidos con saldo"} <ArrowUpRight className="i go" /></div>
+          <Link className="card caja-turno" href="/panel/caja">
+            <div className="caja-head">
+              <span className="caja-ico"><Wallet className="i" /></span>
+              <div><b>Caja de hoy</b><small>{sede ? "Sede elegida" : "Las tres sedes"}</small></div>
+              <span className={`badge ${t.caja.cerrada ? "b-good" : "b-info"}`}>{t.caja.cerrada ? "Cerrada" : "Abierta"}</span>
+            </div>
+            <div className="caja-neto"><Contador valor={t.caja.ingresos - t.caja.egresos} soles /><small>neto del día</small></div>
+            <dl className="caja-filas">
+              <div><dt>Entró</dt><dd className="pos">{S(t.caja.ingresos)}</dd></div>
+              <div><dt>Salió</dt><dd className="neg">{S(t.caja.egresos)}</dd></div>
+              <div><dt>Efectivo</dt><dd>{S(t.caja.efectivo)}</dd></div>
+              <div><dt>Yape, Plin y otros</dt><dd>{S(t.caja.digital)}</dd></div>
+            </dl>
+            <span className="caja-go">Abrir caja <ChevronRight className="i" /></span>
           </Link>
         )}
-        <Link className="kpi" href="/panel/produccion">
-          <div className="top">Listos para entregar <span className="ico info"><PackageCheck className="i" /></span></div>
-          <div className="val"><Contador valor={listos.count ?? 0} /></div>
-          <div className="sub">Pedidos ya impresos <ArrowUpRight className="i go" /></div>
+      </div>
+
+      <div className="tcards">
+        {veDinero && (
+          <Link className="tcard" data-modulo="cobros" href="/panel/reportes">
+            <span className="tcard-ico"><HandCoins /></span>
+            <span className="tcard-q">Ingresos del mes</span>
+            <span className="tcard-v"><Contador valor={t.ingresosMes} soles /></span>
+            <span className="tcard-s">
+              {t.variacion === null ? "Sin datos del mes pasado" : (
+                <>{t.variacion >= 0 ? <ArrowUpRight className="i" /> : <ArrowDownRight className="i" />}{Math.abs(Math.round(t.variacion))}% vs. el mes pasado</>
+              )}
+            </span>
+          </Link>
+        )}
+        <Link className="tcard" data-modulo="clientes" href="/panel/calendario">
+          <span className="tcard-ico"><Camera /></span>
+          <span className="tcard-q">Sesiones en proceso</span>
+          <span className="tcard-v"><Contador valor={t.sesiones} /></span>
+          <span className="tcard-s">{t.tomasHoy} {t.tomasHoy === 1 ? "toma hoy" : "tomas hoy"}</span>
         </Link>
-        {veDinero &&
-          (nVerificar > 0 ? (
-            <Link className="kpi alert" href="/panel/cobros#verificar">
-              <div className="top">Pagos por verificar <span className="ico bad"><CircleAlert className="i" /></span></div>
-              <div className="val"><Contador valor={nVerificar} /></div>
-              <div className="sub">Yape o Plin por confirmar <ArrowUpRight className="i go" /></div>
-            </Link>
-          ) : (
-            <div className="kpi">
-              <div className="top">Pagos por verificar <span className="ico"><Wallet className="i" /></span></div>
-              <div className="val">0</div>
-              <div className="sub">Todo al día</div>
+        <Link className="tcard" data-modulo="produccion" href="/panel/produccion">
+          <span className="tcard-ico"><PackageCheck /></span>
+          <span className="tcard-q">Laboratorio</span>
+          <span className="tcard-v"><Contador valor={t.procesados + t.paraEntregar} /></span>
+          <span className="tcard-s">{t.procesados} por imprimir · {t.paraEntregar} por entregar</span>
+        </Link>
+        {veDinero && (
+          <Link className="tcard" data-modulo="inventario" href="/panel/reportes#deudores">
+            <span className="tcard-ico"><Wallet /></span>
+            <span className="tcard-q">Saldos por cobrar</span>
+            <span className="tcard-v"><Contador valor={t.porCobrar} soles /></span>
+            <span className="tcard-s">{t.conSaldo} {t.conSaldo === 1 ? "pedido con saldo" : "pedidos con saldo"}</span>
+          </Link>
+        )}
+      </div>
+
+      <div className="grid-2 tab-graficos">
+        {veDinero && (
+          <div className="card">
+            <div className="card-head">
+              <div>
+                <h2>Evolución de ingresos</h2>
+                <p>{S(totalRango)} cobrados en {rango} días</p>
+              </div>
+              <nav className="segmented" aria-label="Rango de días">
+                {RANGOS.map((r) => (
+                  <Link key={r} href={`/panel?dias=${r}`} scroll={false} aria-current={r === rango ? "true" : undefined}><span>{r} días</span></Link>
+                ))}
+              </nav>
             </div>
-          ))}
+            <div className="card-body">
+            <Barras
+              grupos={t.serie.map((x) => ({ etiqueta: etiquetaDia(x.dia), valores: [x.monto] }))}
+              series={["Cobrado"]}
+              resaltar={t.serie.length - 1}
+              meta={t.metaDiaria > 0 ? { valor: t.metaDiaria, texto: "Meta diaria" } : undefined}
+              etiquetaCada={rango === 7 ? 1 : rango === 30 ? 5 : 10}
+            />
+            </div>
+          </div>
+        )}
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h2>Demanda por tipo</h2>
+              <p>Pedidos de los últimos 90 días</p>
+            </div>
+          </div>
+          <div className="card-body">
+          <Dona
+            partes={t.demanda.map((x) => ({ nombre: TIPO_CAMPANA[x.tipo] ?? "Otro", valor: x.n }))}
+            centro={{ valor: String(totalDemanda), texto: "pedidos" }}
+            formato="num"
+          />
+          </div>
+        </div>
       </div>
 
       <div className="grid-2">
