@@ -24,10 +24,12 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   // En celular solo caben 5 accesos abajo; el resto queda en "Más".
   const gestion: ItemNav[] = [
     { href: "/panel", texto: "Inicio", icono: "inicio", movil: true },
+    { href: "/panel/hoy", texto: "Resumen del día", icono: "hoy" },
     ...(puede(perfil, "clientes")
       ? [{ href: "/panel/clientes", texto: "Clientes", icono: "clientes", count: tareasHoy ?? 0, movil: true } as ItemNav]
       : []),
     { href: "/panel/colegios", texto: "Colegios y alumnos", icono: "colegios" },
+    { href: "/panel/calendario", texto: "Calendario", icono: "calendario" },
     { href: "/panel/tabla", texto: "Tabla general", icono: "tabla" },
     { href: "/panel/fotos", texto: "Fotos", icono: "fotos" },
     { href: "/panel/produccion", texto: "Producción", icono: "produccion", movil: true },
@@ -49,6 +51,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   // Vista sencilla: solo las cuatro tareas del día a día y un acceso a todo lo demás.
   const esencial: ItemNav[] = [
     gestion[0],
+    gestion[1],
     ...ventas.filter((i) => i.icono === "cobros"),
     ...gestion.filter((i) => i.icono === "produccion" || i.icono === "clientes"),
     { href: "/panel/mas", texto: "Todas las secciones", icono: "mas", movil: true },

@@ -58,13 +58,13 @@ export default async function Tabla({ searchParams }: { searchParams: Promise<{ 
         codigo: a.codigo, apellidos: a.apellidos, nombres: a.nombres, dni: a.dni, apoderado: a.apoderado, telefono: a.telefono,
         pedidos: a.pedidos, estado: a.estado ? ESTADO_PEDIDO[a.estado]?.[0] ?? a.estado : "Sin pedido",
         total: a.total, pagado: a.pagado, saldo: a.saldo, creado: diaLima(a.creado),
-        _href: `/panel/campanas/${a.campanaId}`,
+        _href: `/panel/alumnos/${a.id}`,
       }));
   }
 
   if (hoja === "pedidos") {
     type P = {
-      id: string; numero: number; estado: string; total: number; sede: string; creado_en: string; entregado_en: string | null; campana_id: string;
+      id: string; numero: number; estado: string; total: number; sede: string; creado_en: string; entregado_en: string | null; campana_id: string; alumno_id: string;
       alumnos: { codigo: string; nombres: string; apellidos: string; grado: string | null; seccion: string | null; apoderado_telefono: string | null } | null;
       campanas: { nombre: string; anio: number; colegios: { nombre: string } | null } | null;
       pedido_items: { cantidad: number; productos: { nombre: string } | null }[];
@@ -73,7 +73,7 @@ export default async function Tabla({ searchParams }: { searchParams: Promise<{ 
       todas<P>((a, b) => {
         let q = supabase
           .from("pedidos")
-          .select("id, numero, estado, total, sede, creado_en, entregado_en, campana_id, alumnos(codigo, nombres, apellidos, grado, seccion, apoderado_telefono), campanas(nombre, anio, colegios(nombre)), pedido_items(cantidad, productos(nombre))")
+          .select("id, numero, estado, total, sede, creado_en, entregado_en, campana_id, alumno_id, alumnos(codigo, nombres, apellidos, grado, seccion, apoderado_telefono), campanas(nombre, anio, colegios(nombre)), pedido_items(cantidad, productos(nombre))")
           .order("numero", { ascending: false });
         if (sede) q = q.eq("sede", sede);
         return q.range(a, b).returns<P[]>();
@@ -111,7 +111,7 @@ export default async function Tabla({ searchParams }: { searchParams: Promise<{ 
         estado: ESTADO_PEDIDO[p.estado]?.[0] ?? p.estado,
         total: anulado ? 0 : Number(p.total), pagado: Number(s?.pagado ?? 0), saldo: anulado ? 0 : Number(s?.saldo ?? 0),
         entregado: diaLima(p.entregado_en),
-        _href: `/panel/campanas/${p.campana_id}`,
+        _href: `/panel/alumnos/${p.alumno_id}`,
       };
     });
   }

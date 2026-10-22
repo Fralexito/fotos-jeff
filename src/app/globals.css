@@ -576,6 +576,8 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 [data-modulo="reportes"] { --m: #3a6fd8; }
 [data-modulo="tabla"] { --m: #16a34a; }
 [data-modulo="fotos"] { --m: #c026d3; }
+[data-modulo="calendario"] { --m: #0891b2; }
+[data-modulo="hoy"] { --m: #d97706; }
 [data-modulo="ajustes"], [data-modulo="mas"], [data-modulo="buscar"] { --m: #64748b; }
 
 .pagehead { align-items: center; justify-content: flex-start; gap: 14px; }
@@ -874,3 +876,123 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 .sede-card { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px 16px; background: var(--surface-2); }
 .sede-card h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 15px; }
 .sede-card h3 .i { color: var(--brand); width: 16px; height: 16px; }
+
+/* Resumen del día (vista del abuelo): letra grande, pocas cosas, todo a la vista */
+.banner.resumen { background: color-mix(in oklab, #d97706 9%, var(--surface)); border-color: color-mix(in oklab, #d97706 30%, transparent); color: #b45309; }
+.banner.resumen .banner-go { color: #b45309; }
+.abuelo { max-width: 1080px; margin: 0 auto; }
+.abuelo-cab { margin: 4px 0 22px; }
+.abuelo-cab p { margin: 0 0 4px; color: var(--muted); font-size: 17px; font-weight: 500; }
+.abuelo-cab h1 { font-size: 34px; letter-spacing: -.02em; }
+.abuelo-et { font-size: 17px; font-weight: 600; color: var(--ink-2); }
+.abuelo-caja { display: grid; gap: 6px; padding: 28px 30px; margin-bottom: 18px; border-radius: 22px; background: linear-gradient(140deg, var(--hero-1), var(--hero-2)); color: #fff; box-shadow: var(--shadow-lg); }
+.abuelo-caja .abuelo-et { color: var(--hero-ink); }
+.abuelo-monto { font-size: clamp(44px, 9vw, 72px); font-weight: 800; letter-spacing: -.04em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.abuelo-sedes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.abuelo-sedes span { display: grid; gap: 2px; padding: 10px 16px; border-radius: 14px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.14); min-width: 140px; }
+.abuelo-sedes small { font-size: 14px; color: var(--hero-ink); }
+.abuelo-sedes b { font-size: 21px; font-variant-numeric: tabular-nums; }
+.abuelo-tres { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px; }
+.abuelo-dato { position: relative; display: grid; gap: 4px; padding: 22px 24px; border-radius: 20px; text-decoration: none; background: var(--surface); border: 1px solid var(--hairline); box-shadow: var(--shadow); overflow: hidden; transition: transform 160ms var(--ease-out), box-shadow 200ms ease; }
+.abuelo-dato::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px; background: var(--m); }
+.abuelo-dato > svg { width: 30px; height: 30px; color: var(--m); margin-bottom: 6px; }
+.abuelo-dato b { font-size: 40px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.abuelo-dato small { font-size: 16px; color: var(--muted); }
+.abuelo-dato:active { transform: scale(.98); }
+@media (hover: hover) { .abuelo-dato:hover { box-shadow: var(--shadow-lg); } }
+.abuelo-listas { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; align-items: start; }
+.abuelo-listas h2 { font-size: 19px; }
+.abuelo-lista { list-style: none; margin: 0; padding: 4px 0; }
+.abuelo-lista li { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--line); font-size: 17px; }
+.abuelo-lista li:last-child { border-bottom: 0; }
+.abuelo-lista li > :is(span, a):not([class]) { flex: 1; min-width: 0; display: grid; text-decoration: none; color: inherit; }
+.abuelo-lista small { font-size: 14px; color: var(--muted); }
+.abuelo-debe { font-weight: 800; color: var(--bad); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.abuelo-cuando { font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+.abuelo-ev { width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; }
+.abuelo-ev svg { width: 20px; height: 20px; }
+.abuelo-ev.toma { background: var(--brand-soft); color: var(--brand-ink); }
+.abuelo-ev.entrega { background: var(--good-soft); color: var(--good); }
+.abuelo-vacio { display: flex; align-items: center; gap: 8px; margin: 0; padding: 22px 20px; font-size: 17px; color: var(--muted); }
+.abuelo-pie { margin: 22px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+
+/* Ficha del alumno */
+.ficha-kpis { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.ficha { align-items: start; }
+.ficha-col { display: grid; gap: 20px; min-width: 0; }
+.ficha-col .card { margin: 0; }
+.ficha-pedido .main { align-items: flex-start; }
+.ficha-pedido .title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ficha-montos { flex-direction: column; align-items: flex-end; gap: 4px; }
+.ficha-montos b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.ficha-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; padding: 16px 20px 20px; }
+.ficha-fotos figure { margin: 0; display: grid; gap: 6px; }
+.ficha-fotos img, .ficha-fotos .foto-espera { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); }
+.ficha-fotos figcaption { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ficha-tel { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.card-head h2 .i { width: 17px; height: 17px; vertical-align: -3px; margin-right: 4px; }
+.cobros-alumno, .item .title[href] { color: inherit; text-decoration: none; }
+.item a.title:hover { color: var(--brand); text-decoration: underline; }
+
+/* Cobrar por WhatsApp en lote */
+.lote { display: grid; gap: 16px; }
+.lote .card { margin: 0; }
+.lote-mensaje { padding: 16px 20px; display: grid; gap: 8px; }
+.lote-mensaje textarea { resize: vertical; min-height: 72px; font: inherit; line-height: 1.5; }
+.lote-mensaje p { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.lote-enviar { position: sticky; top: 64px; z-index: 5; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 18px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); font-size: 15px; }
+.lote-enviar > span:first-child { flex: 1; min-width: 200px; }
+.lote-enviar .ok-text { display: inline-flex; align-items: center; gap: 6px; }
+.lote-colegio { width: auto; max-width: 280px; }
+.lote-fila { flex-wrap: nowrap; transition: opacity 200ms ease; }
+.lote-fila.enviado { opacity: .55; }
+.lote-check { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.lote-check input { width: 20px; height: 20px; flex: none; accent-color: var(--brand); }
+.lote-check > span { display: grid; min-width: 0; }
+.lote-check b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lote-check small { font-size: 13px; color: var(--muted); }
+.lote-fila .btn.wa.sm { width: auto; padding: 0 12px; }
+.lote-saldo { font-weight: 700; color: var(--bad); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lote a.item { text-decoration: none; color: inherit; }
+.badge .i { width: 13px; height: 13px; }
+
+/* Calendario */
+.cal-leyenda { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.cal-leyenda .cal-ev { padding: 4px 10px; font-size: 13px; }
+.cal { margin-bottom: 20px; overflow: hidden; }
+.cal-cab h2 { font-size: 19px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cal-sem { padding: 8px 10px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.cal-dia { min-height: 108px; padding: 6px; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); min-width: 0; }
+.cal-dia:nth-child(7n) { border-right: 0; }
+.cal-dia.vacio { background: var(--surface-2); }
+.cal-dia.pasado .cal-num { color: var(--muted); }
+.cal-num { font-size: 13px; font-weight: 700; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; }
+.cal-dia.hoy { background: color-mix(in oklab, var(--brand) 5%, var(--surface)); }
+.cal-dia.hoy .cal-num { background: var(--brand); color: #fff; }
+.cal-ev { display: flex; align-items: center; gap: 5px; padding: 3px 6px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; min-width: 0; transition: filter 160ms ease; }
+.cal-ev .i { width: 13px; height: 13px; flex: none; }
+.cal-ev span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-ev.toma { background: var(--brand-soft); color: var(--brand-ink); }
+.cal-ev.entrega { background: var(--good-soft); color: var(--good); }
+.cal-ev.tarea { background: var(--warn-soft); color: var(--warn); }
+@media (hover: hover) { a.cal-ev:hover { filter: brightness(.95); } }
+.cal-mas { font-size: 11px; color: var(--muted); padding-left: 6px; }
+.tl-ico.cal-entrega { background: var(--good-soft); color: var(--good); }
+.tl-ico.cal-tarea { background: var(--warn-soft); color: var(--warn); }
+.cal-fecha::first-letter { text-transform: uppercase; }
+.cal-fecha { display: block; font-weight: 700; color: var(--ink-2) !important; font-size: 13px !important; }
+.cal-agenda a { color: inherit; text-decoration: none; }
+@media (max-width: 720px) {
+  .cal-dia { min-height: 54px; padding: 4px; align-items: center; }
+  .cal-ev:not(.cal-leyenda .cal-ev) { width: 8px; height: 8px; padding: 0; border-radius: 50%; }
+  .cal-grid .cal-ev .i, .cal-grid .cal-ev span { display: none; }
+  .cal-grid .cal-ev.toma { background: var(--brand); } .cal-grid .cal-ev.entrega { background: var(--good); } .cal-grid .cal-ev.tarea { background: var(--warn); }
+  .cal-dia { flex-direction: row; flex-wrap: wrap; justify-content: center; align-content: flex-start; }
+  .cal-num { margin: 0 calc(50% - 13px); }
+  .cal-mas { display: none; }
+  .abuelo-cab h1 { font-size: 27px; }
+  .abuelo-caja { padding: 22px; }
+  .lote-enviar { top: 56px; }
+  .lote-enviar .btn { width: 100%; justify-content: center; }
+}

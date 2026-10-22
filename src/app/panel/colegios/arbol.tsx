@@ -130,7 +130,7 @@ function Contenido({ colegio, alumnos, anio }: { colegio: ColegioArbol; alumnos:
                         const [txt, cls] = a.estado ? ESTADO_PEDIDO[a.estado] ?? [a.estado, "b-neutral"] : ["Sin pedido", "b-neutral"];
                         return (
                           <li key={a.id}>
-                            <Link href={`/panel/buscar?q=${encodeURIComponent(a.codigo)}`} className="alumno">
+                            <Link href={`/panel/alumnos/${a.id}`} className="alumno">
                               <span className="code">{a.codigo}</span>
                               <span className="alumno-nom"><b>{a.apellidos}</b>, {a.nombres}</span>
                               <span className="alumno-apo hide-mobile">{a.apoderado ?? ""}{a.telefono && <small>{a.telefono}</small>}</span>
