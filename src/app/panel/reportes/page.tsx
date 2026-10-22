@@ -68,6 +68,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
   return (
     <>
       <PageHeader
+        modulo="reportes"
         title="Reportes"
         subtitle="Cómo va el negocio: ventas, cobros, gastos y quién debe."
         actions={
@@ -142,7 +143,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
         )}
       </div>
 
-      <div className="card">
+      <div className="card" id="deudores">
         <div className="card-head">
           <div><h2>Quién debe</h2><p>Todos los pedidos con saldo, de mayor a menor. El botón manda un recordatorio amable por WhatsApp.</p></div>
           {lista.length > 0 && <a className="btn secondary sm" href="/panel/reportes/deudores" download><Download className="i" /> Descargar Excel</a>}

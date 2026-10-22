@@ -20,7 +20,7 @@ export function Nav({ items }: { items: ItemNav[] }) {
         ? ruta === href
         : ruta.startsWith(href) || (href === "/panel/colegios" && /^\/panel\/(campanas|pedidos)/.test(ruta));
     return (
-      <Link key={href} href={href} className={`navlink${movil ? "" : " hide-mobile"}${icono === "mas" ? " only-mobile" : ""}`} aria-current={activo ? "page" : undefined}>
+      <Link key={href} href={href} className={`navlink${movil ? "" : " hide-mobile"}${icono === "mas" && texto === "Más" ? " only-mobile" : ""}`} data-modulo={icono} aria-current={activo ? "page" : undefined}>
         <Icono className="i" />
         {texto}
         {!!count && <span className="count">{count}</span>}

@@ -56,6 +56,7 @@ export default async function Caja({ searchParams }: { searchParams: Promise<{ f
   return (
     <>
       <PageHeader
+        modulo="caja"
         title="Caja"
         subtitle={titulo}
         actions={
@@ -151,7 +152,7 @@ export default async function Caja({ searchParams }: { searchParams: Promise<{ f
             </div>
           </div>
           {(cierres ?? []).length > 0 && (
-            <div className="card">
+            <div className="card detalle">
               <div className="card-head"><h2>Últimos cierres</h2></div>
               <div className="list">
                 {(cierres ?? []).map((c) => (

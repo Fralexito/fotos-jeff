@@ -43,9 +43,17 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     { href: "/panel/mas", texto: "Más", icono: "mas", movil: true },
   ];
   const p = perfil.preferencias;
+  const sencilla = p.vista === "sencilla";
+  // Vista sencilla: solo las cuatro tareas del día a día y un acceso a todo lo demás.
+  const esencial: ItemNav[] = [
+    gestion[0],
+    ...ventas.filter((i) => i.icono === "cobros"),
+    ...gestion.filter((i) => i.icono === "produccion" || i.icono === "clientes"),
+    { href: "/panel/mas", texto: "Todas las secciones", icono: "mas", movil: true },
+  ];
 
   return (
-    <div className="app" data-color={p.color} data-tema={p.tema} data-letra={p.letra} data-densidad={p.densidad}>
+    <div className="app" data-vista={p.vista} data-color={p.color} data-tema={p.tema} data-letra={p.letra} data-densidad={p.densidad}>
       <aside className="side" aria-label="Secciones">
         <Link href="/panel" className="logo">
           <span className="mark"><Camera /></span>
@@ -54,14 +62,25 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <small>Estudio fotográfico · Nauta</small>
           </span>
         </Link>
-        <div className="section">Gestión</div>
-        <Nav items={gestion} />
-        {ventas.length > 0 && <div className="section">Ventas</div>}
-        <Nav items={ventas} />
-        <div className="section">Operación</div>
-        <Nav items={operacion} />
-        <div className="section hide-mobile">Cuenta</div>
-        <Nav items={cuenta} />
+        {sencilla ? (
+          <>
+            <div className="section">Lo de cada día</div>
+            <Nav items={esencial} />
+            <div className="section hide-mobile">Cuenta</div>
+            <Nav items={[cuenta[0]]} />
+          </>
+        ) : (
+          <>
+          <div className="section">Gestión</div>
+          <Nav items={gestion} />
+          {ventas.length > 0 && <div className="section">Ventas</div>}
+          <Nav items={ventas} />
+          <div className="section">Operación</div>
+          <Nav items={operacion} />
+          <div className="section hide-mobile">Cuenta</div>
+          <Nav items={cuenta} />
+          </>
+        )}
         <div className="grow" />
         <div className="usercard">
           <Avatar name={perfil.nombre} />
@@ -78,7 +97,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       </aside>
       <main>
         <Suspense>
-          <Topbar cobros={dinero} catalogo={puede(perfil, "catalogo")} clientes={puede(perfil, "clientes")} />
+          <Topbar cobros={dinero} catalogo={puede(perfil, "catalogo")} clientes={puede(perfil, "clientes")} prefs={p} />
         </Suspense>
         <div className="content">{children}</div>
       </main>

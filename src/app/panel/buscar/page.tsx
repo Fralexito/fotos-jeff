@@ -40,9 +40,17 @@ export default async function Buscar({ searchParams }: { searchParams: Promise<{
   return (
     <>
       <PageHeader
-        title={texto ? `Resultados para “${texto}”` : "Buscar"}
-        subtitle={texto ? `${nCol + nAlu} ${nCol + nAlu === 1 ? "resultado" : "resultados"}` : "Escribe en la barra de arriba un apellido, nombre, código o colegio."}
+        modulo="buscar"
+        title={texto ? `Resultados para “${texto}”` : "Buscar un alumno o colegio"}
+        subtitle={texto ? `${nCol + nAlu} ${nCol + nAlu === 1 ? "resultado" : "resultados"}` : "También puedes usar la barra de arriba en cualquier pantalla."}
       />
+      {!texto && (
+        <form action="/panel/buscar" className="bigsearch" role="search">
+          <Search className="i" />
+          <input name="q" autoFocus placeholder="Escribe un apellido, nombre, código o colegio" aria-label="Buscar" />
+          <button className="btn lg" type="submit">Buscar</button>
+        </form>
+      )}
       {texto && nCol + nAlu === 0 && (
         <div className="card">
           <Empty icon={Search} title="No encontramos nada">Revisa la ortografía o prueba solo con el apellido.</Empty>

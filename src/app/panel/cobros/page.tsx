@@ -59,10 +59,11 @@ export default async function Cobros({
 
   return (
     <>
-      <PageHeader title="Cobros" subtitle="Quién pagó y quién debe. Busca al alumno, escribe el monto y elige cómo pagó." />
+      <PageHeader modulo="cobros"
+        title="Cobros" subtitle="Quién pagó y quién debe. Busca al alumno, escribe el monto y elige cómo pagó." />
       <Aviso {...aviso} />
 
-      <div className="kpis">
+      <div className="kpis detalle">
         <div className="kpi">
           <div className="top">Pagado completo <span className="ico"><CircleCheck className="i" /></span></div>
           <div className="val">{completos}</div>

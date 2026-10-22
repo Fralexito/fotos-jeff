@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarClock, ChevronLeft, ChevronRight, Contact, Handshake, ListTodo, Plus, Target, Trophy, UserPlus } from "lucide-react";
+import { CalendarClock, ChevronRight, Contact, Handshake, ListTodo, Plus, Target, Trophy, UserPlus } from "lucide-react";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
 import { CARGO, ETAPA, S, TIPO_CAMPANA, dia, hoyLima, whatsapp } from "@/lib/formato";
 import { Aviso } from "@/components/aviso";
@@ -91,6 +91,7 @@ export default async function Clientes({
   return (
     <>
       <PageHeader
+        modulo="clientes"
         title="Clientes"
         subtitle="Colegios por conseguir, contactos y recordatorios del día."
         actions={
@@ -127,7 +128,7 @@ export default async function Clientes({
       />
       <Aviso {...aviso} />
 
-      <div className="kpis">
+      <div className="kpis detalle">
         <div className="kpi">
           <div className="top">Oportunidades abiertas <span className="ico"><Target className="i" /></span></div>
           <div className="val">{abiertas.length}</div>
@@ -188,14 +189,7 @@ export default async function Clientes({
                           </span>
                         </Link>
                         <footer>
-                          {i > 0 ? (
-                            <form action={moverOportunidad}>
-                              <input type="hidden" name="id" value={o.id} />
-                              <input type="hidden" name="etapa" value={COLUMNAS[i - 1]} />
-                              <button className="icon-btn" title={`Regresar a ${ETAPA[COLUMNAS[i - 1]][0]}`} aria-label="Etapa anterior"><ChevronLeft className="i" /></button>
-                            </form>
-                          ) : <span />}
-                          <WhatsApp href={whatsapp(o.telefono, `Hola ${o.contacto_nombre ?? ""}, le saluda Fotos Jeff.`)} label="" />
+                          {whatsapp(o.telefono) ? <WhatsApp href={whatsapp(o.telefono, `Hola ${o.contacto_nombre ?? ""}, le saluda Fotos Jeff.`)} label="" /> : <span />}
                           {i < COLUMNAS.length - 1 ? (
                             <form action={moverOportunidad}>
                               <input type="hidden" name="id" value={o.id} />

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Boxes, CalendarDays, ChevronRight, CircleAlert, CircleCheck, Factory, HandCoins, Handshake, ListTodo, PackageCheck, School, Sparkles, Wallet } from "lucide-react";
+import { ArrowUpRight, Search, Truck, Boxes, CalendarDays, ChevronRight, CircleAlert, CircleCheck, Factory, HandCoins, Handshake, ListTodo, PackageCheck, School, Sparkles, Wallet } from "lucide-react";
 import { requirePerfil, puede } from "@/lib/auth";
 import { S, TIPO_CAMPANA, fecha, saludo } from "@/lib/formato";
 import { Avatar, Empty } from "@/components/ui";
@@ -54,6 +54,73 @@ export default async function Inicio() {
   const nVerificar = porVerificar?.count ?? 0;
   const dia = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Lima" }).format(new Date());
   const hoyTexto = dia.charAt(0).toUpperCase() + dia.slice(1);
+
+  // Vista sencilla: cuatro respuestas grandes y tres acciones, nada más.
+  if (perfil.preferencias.vista === "sencilla") {
+    const pendientesHoy = (tareas.data ?? []).length + bajos.length;
+    return (
+      <>
+        <header className="hello">
+          <p>{hoyTexto}</p>
+          <h1>{saludo()}, {perfil.nombre.split(" ")[0]}</h1>
+        </header>
+
+        {nVerificar > 0 && (
+          <Link className="banner" href="/panel/cobros#verificar">
+            <CircleAlert className="i" />
+            <span><b>{nVerificar === 1 ? "Hay 1 pago de Yape o Plin" : `Hay ${nVerificar} pagos de Yape o Plin`} por confirmar.</b> Revisa el celular del negocio.</span>
+            <span className="banner-go">Revisar <ChevronRight className="i" /></span>
+          </Link>
+        )}
+
+        <div className="answers">
+          {veDinero && (
+            <Link className="answer" data-modulo="cobros" href="/panel/caja">
+              <span className="answer-ico"><Wallet /></span>
+              <span className="answer-q">Hoy entró</span>
+              <span className="answer-v"><Contador valor={cobradoHoy} soles /></span>
+              <span className="answer-s">Ver la caja del día</span>
+            </Link>
+          )}
+          {veDinero && (
+            <Link className="answer" data-modulo="caja" href="/panel/reportes#deudores">
+              <span className="answer-ico"><HandCoins /></span>
+              <span className="answer-q">Falta cobrar</span>
+              <span className="answer-v"><Contador valor={porCobrar} soles /></span>
+              <span className="answer-s">{conSaldo} {conSaldo === 1 ? "pedido con saldo" : "pedidos con saldo"}</span>
+            </Link>
+          )}
+          <Link className="answer" data-modulo="produccion" href="/panel/produccion?vista=entregas">
+            <span className="answer-ico"><PackageCheck /></span>
+            <span className="answer-q">Listos para entregar</span>
+            <span className="answer-v"><Contador valor={listos.count ?? 0} /></span>
+            <span className="answer-s">pedidos ya impresos</span>
+          </Link>
+          <Link className="answer" data-modulo="clientes" href="/panel/clientes?vista=tareas">
+            <span className="answer-ico"><ListTodo /></span>
+            <span className="answer-q">Pendientes de hoy</span>
+            <span className="answer-v"><Contador valor={pendientesHoy} /></span>
+            <span className="answer-s">{pendientesHoy === 0 ? "todo al día" : "recordatorios y compras"}</span>
+          </Link>
+        </div>
+
+        <h2 className="ask">¿Qué quieres hacer?</h2>
+        <div className="big-actions">
+          {veDinero && (
+            <Link className="big-action primary" href="/panel/cobros">
+              <HandCoins /> <span><b>Registrar un pago</b><small>Efectivo, Yape o Plin</small></span>
+            </Link>
+          )}
+          <Link className="big-action" href="/panel/buscar">
+            <Search /> <span><b>Buscar un alumno</b><small>Por apellido o código</small></span>
+          </Link>
+          <Link className="big-action" href="/panel/produccion?vista=entregas">
+            <Truck /> <span><b>Entregar pedidos</b><small>Lista por salón</small></span>
+          </Link>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

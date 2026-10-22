@@ -21,7 +21,8 @@ export default async function Ajustes({ searchParams }: { searchParams: Promise<
 
   return (
     <>
-      <PageHeader title="Ajustes" subtitle="Personaliza el panel a tu gusto y revisa tus datos." />
+      <PageHeader modulo="ajustes"
+        title="Ajustes" subtitle="Personaliza el panel a tu gusto y revisa tus datos." />
       <Aviso {...aviso} />
 
       <Apariencia inicial={perfil.preferencias} />

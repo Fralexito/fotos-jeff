@@ -1,12 +1,22 @@
 import Link from "next/link";
-import { ChevronRight, type LucideIcon } from "lucide-react";
+import {
+  Boxes, ChartColumn, ChevronRight, Factory, Handshake, LayoutDashboard, Package, School, Search, Settings, Vault, Wallet, type LucideIcon,
+} from "lucide-react";
+
+// Cada sección tiene su ícono y su color, para ubicarse de un vistazo.
+export const MODULOS: Record<string, LucideIcon> = {
+  inicio: LayoutDashboard, clientes: Handshake, colegios: School, produccion: Factory, cobros: Wallet, caja: Vault,
+  catalogo: Package, inventario: Boxes, reportes: ChartColumn, ajustes: Settings, buscar: Search,
+};
 
 export function PageHeader({
   title,
   subtitle,
   crumbs,
   actions,
+  modulo,
 }: {
+  modulo?: keyof typeof MODULOS;
   title: string;
   subtitle?: React.ReactNode;
   crumbs?: { href: string; label: string }[];
@@ -14,7 +24,11 @@ export function PageHeader({
 }) {
   return (
     <header className="pagehead">
-      <div>
+      {modulo && (() => {
+        const Icono = MODULOS[modulo];
+        return <span className="modico" data-modulo={modulo} aria-hidden><Icono /></span>;
+      })()}
+      <div className="pagehead-text">
         {crumbs && (
           <nav className="crumbs" aria-label="Ruta">
             {crumbs.map((c) => (
