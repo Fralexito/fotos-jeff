@@ -25,6 +25,20 @@ type Foto = {
   alumnos: { codigo: string; nombres: string; apellidos: string; grado: string | null; seccion: string | null } | null;
 };
 
+// Un formulario por botón: la acción va en un campo oculto y no depende de qué botón envió el formulario.
+function AccionFoto({ id, volver, accion, className, titulo, children }: {
+  id: string; volver: string; accion: string; className: string; titulo?: string; children: React.ReactNode;
+}) {
+  return (
+    <form action={revisarFotos}>
+      <input type="hidden" name="id" value={id} />
+      <input type="hidden" name="volver" value={volver} />
+      <input type="hidden" name="accion" value={accion} />
+      <button className={className} type="submit" aria-label={titulo} title={titulo}>{children}</button>
+    </form>
+  );
+}
+
 const aHex = (rgb: string) => "#" + rgb.split(",").map((n) => Number(n).toString(16).padStart(2, "0")).join("");
 
 export default async function Fotos({ searchParams }: { searchParams: Promise<{ campana?: string; ver?: string; ok?: string; error?: string }> }) {
@@ -178,17 +192,15 @@ export default async function Fotos({ searchParams }: { searchParams: Promise<{ 
                   )}
                 </div>
                 {f.estado !== "subida" && f.estado !== "procesando" && (
-                  <form action={revisarFotos} className="foto-acciones">
-                    <input type="hidden" name="id" value={f.id} />
-                    <input type="hidden" name="volver" value={volver} />
+                  <div className="foto-acciones">
                     {f.estado !== "aprobada" && (
-                      <button className="btn sm" name="accion" value="aprobar" type="submit"><Check className="i" /> Aprobar</button>
+                      <AccionFoto id={f.id} volver={volver} accion="aprobar" className="btn sm"><Check className="i" /> Aprobar</AccionFoto>
                     )}
                     {f.estado !== "rechazada" && (
-                      <button className="btn secondary sm" name="accion" value="rechazar" type="submit" aria-label="Rechazar" title="Rechazar"><X className="i" /></button>
+                      <AccionFoto id={f.id} volver={volver} accion="rechazar" className="btn secondary sm" titulo="Rechazar"><X className="i" /></AccionFoto>
                     )}
-                    <button className="btn ghost sm" name="accion" value="reprocesar" type="submit" aria-label="Volver a editar" title="Volver a editar"><RotateCcw className="i" /></button>
-                  </form>
+                    <AccionFoto id={f.id} volver={volver} accion="reprocesar" className="btn ghost sm" titulo="Volver a editar"><RotateCcw className="i" /></AccionFoto>
+                  </div>
                 )}
               </article>
             );
