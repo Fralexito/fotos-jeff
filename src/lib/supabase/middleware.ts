@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Refresca la sesión en cada pedido y saca del panel a quien no inició sesión.
+// Refresca la sesión y saca del panel a quien no inició sesión.
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
@@ -19,8 +19,10 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user && request.nextUrl.pathname.startsWith("/panel")) {
+  // getSession lee la cookie (y la renueva si venció) sin consultar al servidor en cada clic;
+  // la verificación completa del usuario la hace el panel con getUser.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session && request.nextUrl.pathname.startsWith("/panel")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

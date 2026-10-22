@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { leerPreferencias, type Preferencias } from "@/lib/preferencias";
@@ -16,8 +17,8 @@ export const PERMISOS = {
   clientes: ["dueno", "operador"],
 } satisfies Record<string, Rol[]>;
 
-// Devuelve el perfil del personal o saca al usuario. Con `roles`, además exige uno de esos roles.
-export async function requirePerfil(roles?: Rol[]) {
+// Usuario y perfil una sola vez por carga de página, aunque lo pidan el layout y la página.
+const perfilActual = cache(async () => {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -29,8 +30,13 @@ export async function requirePerfil(roles?: Rol[]) {
     .single();
   if (!data) redirect("/login?error=sin-perfil");
   const perfil: Perfil = { ...data, preferencias: leerPreferencias(data.preferencias) };
-  if (roles && !roles.includes(perfil.rol)) redirect("/panel");
+  return { supabase, perfil };
+});
 
+// Devuelve el perfil del personal o saca al usuario. Con `roles`, además exige uno de esos roles.
+export async function requirePerfil(roles?: Rol[]) {
+  const { supabase, perfil } = await perfilActual();
+  if (roles && !roles.includes(perfil.rol)) redirect("/panel");
   return { supabase, perfil };
 }
 
