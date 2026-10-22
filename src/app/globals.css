@@ -574,6 +574,7 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 [data-modulo="catalogo"] { --m: #cf4f7d; }
 [data-modulo="inventario"] { --m: #df6a35; }
 [data-modulo="reportes"] { --m: #3a6fd8; }
+[data-modulo="tabla"] { --m: #16a34a; }
 [data-modulo="ajustes"], [data-modulo="mas"], [data-modulo="buscar"] { --m: #64748b; }
 
 .pagehead { align-items: center; justify-content: flex-start; gap: 14px; }
@@ -702,3 +703,99 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 .sk-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
 .sk-card { height: 128px; }
 .sk-block { height: 300px; }
+
+/* ---------------------------------------------------------------- Colegios → alumnos */
+.chip { padding: 6px 12px; border-radius: 99px; font: inherit; font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 120ms var(--ease-out); }
+.chip:hover { border-color: var(--line-strong); }
+.chip:active { transform: scale(.97); }
+.chip[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand-line); color: var(--brand-ink); }
+.arbol-barra { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 16px; }
+.arbol-todos { display: flex; gap: 4px; margin-left: auto; }
+.arbol-vacio { padding: 24px 4px; }
+.arbol { display: grid; gap: 10px; }
+.colegio-fila { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: box-shadow 200ms ease, border-color 200ms ease; }
+.colegio-fila.abierto { border-color: var(--brand-line); box-shadow: var(--shadow); }
+.colegio-cab { all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 18px; cursor: pointer; }
+.colegio-cab:hover { background: var(--surface-2); }
+.colegio-cab:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.colegio-cab .flecha { color: var(--muted); transform: rotate(-90deg); transition: transform 200ms var(--ease-out); flex: none; }
+.colegio-fila.abierto .flecha { transform: none; color: var(--brand); }
+.colegio-ini { width: 42px; height: 42px; flex: none; border-radius: 12px; display: grid; place-items: center; font-weight: 700; font-size: 13px; letter-spacing: .04em; color: #2b8fd6; background: color-mix(in oklab, #2b8fd6 13%, var(--surface)); }
+.colegio-nom { display: grid; min-width: 0; flex: 1; }
+.colegio-nom b { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.colegio-nom small { color: var(--muted); font-size: 13px; }
+.colegio-datos { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.colegio-datos b { color: var(--ink); font-size: 15px; }
+.colegio-cuerpo { border-top: 1px solid var(--line); padding: 6px 18px 16px; background: var(--surface-2); animation: entrar 220ms var(--ease-out) both; }
+.campana-bloque + .campana-bloque { border-top: 1px dashed var(--line-strong); }
+.campana-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 8px; }
+.campana-cab b { display: block; font-size: 15px; }
+.campana-cab small { color: var(--muted); font-size: 13px; }
+.campana-bloque > .muted-text { padding: 4px 0 12px; }
+.salon { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 10px; overflow: hidden; }
+.salon-cab { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: color-mix(in oklab, var(--brand) 6%, var(--surface)); border-bottom: 1px solid var(--line); }
+.salon-cab b { font-size: 14px; }
+.salon-cab span { font-size: 12px; font-weight: 600; color: var(--brand-ink); background: var(--brand-soft); border-radius: 99px; padding: 1px 8px; }
+.alumnos { list-style: none; margin: 0; padding: 0; counter-reset: n; }
+.alumnos li { counter-increment: n; }
+.alumnos li + li { border-top: 1px solid var(--line); }
+.alumno { display: grid; grid-template-columns: 28px 86px minmax(0, 1.4fr) minmax(0, 1fr) auto 110px; align-items: center; gap: 12px; padding: 8px 14px; color: var(--ink); text-decoration: none; font-size: 14px; }
+.alumno::before { content: counter(n); color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.alumno:hover { background: var(--surface-2); }
+.alumno-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alumno-apo { color: var(--ink-2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alumno-apo small { color: var(--muted); margin-left: 6px; }
+.alumno-saldo { text-align: right; font-size: 13px; font-weight: 600; color: var(--good); font-variant-numeric: tabular-nums; }
+.alumno-saldo.debe { color: var(--bad); }
+.colegio-pie { display: flex; justify-content: flex-end; padding-top: 4px; }
+@media (max-width: 720px) {
+  .colegio-cab { padding: 12px 14px; gap: 10px; }
+  .colegio-ini { display: none; }
+  .colegio-datos { flex-direction: column; align-items: flex-end; gap: 2px; }
+  .colegio-cuerpo { padding: 4px 10px 12px; }
+  .alumno { grid-template-columns: 22px minmax(0, 1fr) auto; grid-template-areas: "n nom saldo" "n cod est"; gap: 2px 10px; }
+  .alumno::before { grid-area: n; }
+  .alumno .code { grid-area: cod; justify-self: start; }
+  .alumno-nom { grid-area: nom; }
+  .alumno .badge { grid-area: est; justify-self: end; }
+  .alumno-saldo { grid-area: saldo; }
+  .arbol-todos { margin-left: 0; }
+}
+
+/* ---------------------------------------------------------------- Tabla general (tipo Excel) */
+.hoja-barra .search { max-width: 380px; }
+.hoja-barra { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 12px; }
+.hoja-fechas { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.hoja-fechas label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.hoja-fechas .input { width: auto; height: 34px; font-size: 13px; }
+.hoja-acciones { display: flex; gap: 6px; margin-left: auto; }
+.hoja-marco { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); overflow: auto; max-height: calc(100dvh - 260px); min-height: 240px; }
+.hoja-tabla { border-collapse: separate; border-spacing: 0; font-size: 13px; width: max-content; min-width: 100%; }
+.hoja-tabla th, .hoja-tabla td { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 6px 10px; white-space: nowrap; text-align: left; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+.hoja-tabla thead th { position: sticky; top: 0; z-index: 2; background: var(--surface-2); font-weight: 600; padding: 0; }
+.hoja-tabla thead tr.filtros th { top: 37px; padding: 4px; background: var(--surface); border-bottom: 1px solid var(--line-strong); }
+.hoja-tabla thead th button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 6px; width: 100%; height: 37px; padding: 0 10px; cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--ink-2); }
+.hoja-tabla thead th button .i { width: 13px; height: 13px; color: var(--muted); opacity: .6; flex: none; }
+.hoja-tabla thead th button:hover .i, .hoja-tabla thead th button.activo .i { opacity: 1; color: var(--brand); }
+.hoja-tabla thead th button.activo { color: var(--brand-ink); }
+.hoja-tabla thead th.der button { justify-content: flex-end; }
+.hoja-tabla .filtros input, .hoja-tabla .filtros select { width: 100%; min-width: 64px; height: 28px; border: 1px solid var(--line); border-radius: 6px; padding: 0 8px; font: inherit; font-size: 12px; background: var(--surface-2); color: var(--ink); }
+.hoja-tabla .filtros input:focus, .hoja-tabla .filtros select:focus { outline: none; border-color: var(--brand); background: var(--surface); }
+.hoja-tabla .n { position: sticky; left: 0; z-index: 1; background: var(--surface-2); color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; width: 44px; min-width: 44px; padding: 6px 8px; font-size: 12px; }
+.hoja-tabla thead .n { z-index: 3; }
+.hoja-tabla .n a { color: var(--brand-ink); text-decoration: none; }
+.hoja-tabla .der { text-align: right; font-variant-numeric: tabular-nums; }
+.hoja-tabla tbody tr:nth-child(even) td { background: color-mix(in oklab, var(--surface-2) 55%, var(--surface)); }
+.hoja-tabla tbody tr:hover td { background: var(--brand-soft); }
+.hoja-tabla tbody tr { animation: none; }
+.hoja-tabla .badge { height: 20px; padding: 0 8px; font-size: 11px; }
+.hoja-tabla .code { font-size: 12px; padding: 1px 5px; }
+.hoja-tabla .vacio { color: var(--line-strong); }
+.hoja-tabla tfoot td { position: sticky; bottom: 0; background: var(--surface-2); border-top: 1px solid var(--line-strong); font-variant-numeric: tabular-nums; }
+.hoja-tabla tfoot .n { z-index: 2; }
+.hoja-vacia { text-align: center !important; color: var(--muted); padding: 40px !important; }
+.hoja-mas { display: flex; justify-content: center; padding: 12px; }
+@media (max-width: 720px) {
+  .hoja-acciones { margin-left: 0; }
+  .hoja-marco { max-height: calc(100dvh - 300px); }
+}

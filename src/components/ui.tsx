@@ -1,12 +1,12 @@
 import Link from "next/link";
 import {
-  Boxes, ChartColumn, ChevronRight, Factory, Handshake, LayoutDashboard, Package, School, Search, Settings, Vault, Wallet, type LucideIcon,
+  Boxes, ChartColumn, ChevronRight, Factory, Handshake, LayoutDashboard, Package, School, Search, Settings, Sheet, Vault, Wallet, type LucideIcon,
 } from "lucide-react";
 
 // Cada sección tiene su ícono y su color, para ubicarse de un vistazo.
 export const MODULOS: Record<string, LucideIcon> = {
   inicio: LayoutDashboard, clientes: Handshake, colegios: School, produccion: Factory, cobros: Wallet, caja: Vault,
-  catalogo: Package, inventario: Boxes, reportes: ChartColumn, ajustes: Settings, buscar: Search,
+  catalogo: Package, inventario: Boxes, reportes: ChartColumn, ajustes: Settings, buscar: Search, tabla: Sheet,
 };
 
 export function PageHeader({
