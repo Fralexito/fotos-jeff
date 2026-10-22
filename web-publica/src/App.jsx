@@ -584,7 +584,10 @@ function Prices({ plan, setPlan, onSend }) {
 
 function Process() {
   const ref = useRef(null)
-  const reduce = useReducedMotion()
+  const mq = () => typeof window !== 'undefined' && window.matchMedia('(max-width:1000px)').matches
+  const [mobile, setMobile] = useState(mq)
+  useEffect(() => { const m = window.matchMedia('(max-width:1000px)'), f = () => setMobile(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f) }, [])
+  const reduce = useReducedMotion() || mobile
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const [step, setStep] = useState(0)
   useMotionValueEvent(p, 'change', v => setStep(Math.min(3, Math.floor(v * 4.0001))))
@@ -598,7 +601,7 @@ function Process() {
   return (
     <div className="page">
       <div className="wrap"><PageHead n="03" crumb="Proceso" title="Cómo trabajamos" lead="Baja despacio: así pasa una foto del colegio a la pared de tu casa." /></div>
-      <div className="story" ref={ref}>
+      <div className={`story${reduce ? ' static' : ''}`} ref={ref}>
         <div className="story-in">
           <ol className="ssteps">
             {STEPS.map(([t, d, x], i) => <li key={t} className={reduce || step === i ? 'on' : ''}><h3>0{i + 1} {t} <small>{d}</small></h3><p>{x}</p></li>)}
