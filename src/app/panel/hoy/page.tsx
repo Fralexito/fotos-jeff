@@ -7,6 +7,7 @@ import { SEDES } from "@/lib/sedes";
 import { Contador } from "@/components/contador";
 import { Refrescar } from "@/components/refrescar";
 import { WhatsApp } from "@/components/ui";
+import { Barras } from "@/components/graficos";
 
 type Evento = { id: string; nombre: string; fecha_captura: string | null; fecha_entrega: string | null; colegios: { nombre: string } | null };
 
@@ -17,7 +18,8 @@ export default async function Hoy() {
   const hoy = hoyLima();
   const en7 = new Date(new Date(hoy + "T12:00:00Z").getTime() + 7 * 86400000).toISOString().slice(0, 10);
 
-  const [pagosHoy, deben, listos, porAprobar, eventos] = await Promise.all([
+  const dias = Array.from({ length: 7 }, (_, i) => new Date(new Date(hoy + "T12:00:00Z").getTime() - (6 - i) * 86400000).toISOString().slice(0, 10));
+  const [pagosHoy, deben, listos, porAprobar, eventos, semana] = await Promise.all([
     veDinero
       ? supabase.from("pagos").select("monto, pedidos!inner(sede)").eq("estado", "confirmado").gte("creado_en", inicioDeHoyLima())
           .returns<{ monto: number; pedidos: { sede: string } }[]>()
@@ -31,7 +33,13 @@ export default async function Hoy() {
       .neq("estado", "cerrada")
       .or(`and(fecha_captura.gte.${hoy},fecha_captura.lte.${en7}),and(fecha_entrega.gte.${hoy},fecha_entrega.lte.${en7})`)
       .returns<Evento[]>(),
+    veDinero
+      ? supabase.from("pagos").select("monto, creado_en").eq("estado", "confirmado").gte("creado_en", `${dias[0]}T00:00:00-05:00`).returns<{ monto: number; creado_en: string }[]>()
+      : null,
   ]);
+  const diaLima = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date(iso));
+  const porDia = dias.map((d) => (semana?.data ?? []).filter((p) => diaLima(p.creado_en) === d).reduce((s, p) => s + Number(p.monto), 0));
+  const nombreDia = (d: string) => (d === hoy ? "Hoy" : new Intl.DateTimeFormat("es-PE", { weekday: "short", timeZone: "UTC" }).format(new Date(d + "T12:00:00Z")).replace(".", ""));
 
   const porSede = SEDES.map(([id, nombre]) => [nombre, (pagosHoy?.data ?? []).filter((p) => p.pedidos.sede === id).reduce((s, p) => s + Number(p.monto), 0)] as const);
   const entroHoy = porSede.reduce((s, [, v]) => s + v, 0);
@@ -61,6 +69,15 @@ export default async function Hoy() {
             {porSede.map(([nombre, v]) => (
               <span key={nombre}><small>{nombre}</small><b>{S(v)}</b></span>
             ))}
+          </div>
+        </section>
+      )}
+
+      {veDinero && (
+        <section className="card abuelo-semana">
+          <div className="card-head"><h2>Lo que entró esta semana</h2><b className="abuelo-semana-total">{S(porDia.reduce((a, b) => a + b, 0))}</b></div>
+          <div className="card-body">
+            <Barras series={["Entró"]} alto={150} resaltar={6} grupos={dias.map((d, i) => ({ etiqueta: nombreDia(d), valores: [porDia[i]] }))} />
           </div>
         </section>
       )}

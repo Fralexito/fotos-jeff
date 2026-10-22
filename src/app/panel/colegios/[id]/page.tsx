@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarPlus, ChevronRight, FolderOpen, UserPlus } from "lucide-react";
-import { requirePerfil } from "@/lib/auth";
+import { puede, requirePerfil } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
 import { Empty, PageHeader } from "@/components/ui";
-import { CARGO, TIPO_CAMPANA, fecha, whatsapp } from "@/lib/formato";
+import { Dona } from "@/components/graficos";
+import { CARGO, ESTADO_PEDIDO, TIPO_CAMPANA, fecha, whatsapp } from "@/lib/formato";
 import { Avatar, WhatsApp } from "@/components/ui";
 import { FormActividad, Historial } from "@/components/historial";
 import { crearContacto } from "../../acciones-erp";
@@ -28,7 +29,7 @@ export default async function Colegio({
   searchParams: Promise<{ ok?: string; error?: string }>;
 }) {
   const [{ id }, aviso] = await Promise.all([params, searchParams]);
-  const { supabase } = await requirePerfil();
+  const { supabase, perfil } = await requirePerfil();
   const { data: colegio } = await supabase
     .from("colegios")
     .select("*, campanas(id, nombre, tipo, anio, estado, fecha_captura, fecha_entrega, alumnos(count))")
@@ -46,6 +47,13 @@ export default async function Colegio({
     id: string; nombre: string; tipo: string; anio: number; estado: string;
     fecha_captura: string | null; fecha_entrega: string | null; alumnos: { count: number }[];
   }[];
+  // Resumen visual del colegio: cuánto se cobró y en qué van los pedidos (todas sus campañas).
+  const { data: saldos } = campanas.length && puede(perfil, "cobros")
+    ? await supabase.from("pedidos_saldo").select("estado, total, pagado, saldo").in("campana_id", campanas.map((c) => c.id)).neq("estado", "anulado")
+    : { data: null };
+  const cobradoCol = (saldos ?? []).reduce((t, x) => t + Number(x.pagado), 0);
+  const faltaCol = (saldos ?? []).reduce((t, x) => t + Number(x.saldo), 0);
+  const alumnosCol = campanas.reduce((t, c) => t + (c.alumnos[0]?.count ?? 0), 0);
   const dia = (d: string | null) => (d ? fecha(d + "T12:00:00-05:00") : "—");
 
   return (
@@ -76,6 +84,22 @@ export default async function Colegio({
         }
       />
       <Aviso {...aviso} />
+      {saldos && saldos.length > 0 && (
+        <div className="graficos">
+          <div className="card">
+            <div className="card-head"><div><h2>Cobro del colegio</h2><p>Todas sus campañas.</p></div></div>
+            <div className="card-body">
+              <Dona partes={[{ nombre: "Cobrado", valor: cobradoCol }, { nombre: "Falta cobrar", valor: faltaCol }]} centro={{ valor: `${Math.round((cobradoCol / Math.max(cobradoCol + faltaCol, 1)) * 100)}%`, texto: "cobrado" }} />
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-head"><div><h2>Pedidos</h2><p>{saldos.length} pedidos de {alumnosCol} alumnos.</p></div></div>
+            <div className="card-body">
+              <Dona formato="num" partes={["pendiente", "procesado", "en_impresion", "entregado"].map((e) => ({ nombre: ESTADO_PEDIDO[e][0], valor: saldos.filter((x) => x.estado === e).length }))} centro={{ valor: String(saldos.length), texto: "pedidos" }} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid-2">
         <div className="card">
