@@ -11,13 +11,13 @@ export function Sparkline({ datos, etiquetas }: { datos: number[]; etiquetas: st
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden>
         <defs>
           <linearGradient id="spark-g" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#6ee7b7" stopOpacity=".45" />
-            <stop offset="1" stopColor="#6ee7b7" stopOpacity="0" />
+            <stop offset="0" style={{ stopColor: "var(--accent)", stopOpacity: 0.45 }} />
+            <stop offset="1" style={{ stopColor: "var(--accent)", stopOpacity: 0 }} />
           </linearGradient>
         </defs>
         <path d={area} fill="url(#spark-g)" />
-        <path className="spark-line" d={linea} fill="none" stroke="#6ee7b7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" pathLength={1} />
-        <circle cx={ux} cy={uy} r="4" fill="#fff" stroke="#6ee7b7" strokeWidth="2.5" />
+        <path className="spark-line" d={linea} fill="none" style={{ stroke: "var(--accent)" }} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" pathLength={1} />
+        <circle cx={ux} cy={uy} r="4" fill="#fff" style={{ stroke: "var(--accent)" }} strokeWidth="2.5" />
       </svg>
       <figcaption>
         {etiquetas.map((e, i) => <span key={i}>{e}</span>)}

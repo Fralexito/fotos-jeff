@@ -4,6 +4,7 @@ import { randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
+import { leerPreferencias, type Preferencias } from "@/lib/preferencias";
 
 const txt = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const opc = (fd: FormData, k: string) => txt(fd, k) || null;
@@ -209,4 +210,27 @@ export async function alternarProducto(fd: FormData) {
   const { supabase } = await requirePerfil(PERMISOS.catalogo);
   await supabase.from("productos").update({ activo: fd.get("activo") === "true" }).eq("id", txt(fd, "id"));
   revalidatePath("/panel/catalogo");
+}
+
+// ---------------------------------------------------------------- Ajustes
+
+export async function guardarPreferencias(preferencias: Preferencias) {
+  const { supabase, perfil } = await requirePerfil();
+  const { error } = await supabase
+    .from("perfiles")
+    .update({ preferencias: leerPreferencias(preferencias) })
+    .eq("id", perfil.id);
+  if (error) return { error: "No se pudo guardar. Intenta otra vez." };
+  revalidatePath("/panel", "layout");
+  return { ok: true };
+}
+
+export async function guardarMiPerfil(fd: FormData) {
+  const { supabase, perfil } = await requirePerfil();
+  const nombre = txt(fd, "nombre");
+  if (!nombre) volver("/panel/ajustes", { error: "Escribe tu nombre." });
+  const { error } = await supabase.from("perfiles").update({ nombre, telefono: opc(fd, "telefono") }).eq("id", perfil.id);
+  if (error) volver("/panel/ajustes", { error: "No se pudo guardar tu perfil." });
+  revalidatePath("/panel", "layout");
+  volver("/panel/ajustes", { ok: "Perfil guardado." });
 }

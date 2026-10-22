@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { leerPreferencias, type Preferencias } from "@/lib/preferencias";
 
 export type Rol = "dueno" | "operador" | "fotografo";
 
-export type Perfil = { id: string; nombre: string; rol: Rol };
+export type Perfil = { id: string; nombre: string; telefono: string | null; rol: Rol; preferencias: Preferencias };
 
 // Qué puede ver cada rol. El dueño y el operador manejan dinero; el fotógrafo solo colegios y alumnos.
 export const PERMISOS = {
@@ -18,12 +19,13 @@ export async function requirePerfil(roles?: Rol[]) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: perfil } = await supabase
+  const { data } = await supabase
     .from("perfiles")
-    .select("id, nombre, rol")
+    .select("id, nombre, telefono, rol, preferencias")
     .eq("id", user.id)
-    .single<Perfil>();
-  if (!perfil) redirect("/login?error=sin-perfil");
+    .single();
+  if (!data) redirect("/login?error=sin-perfil");
+  const perfil: Perfil = { ...data, preferencias: leerPreferencias(data.preferencias) };
   if (roles && !roles.includes(perfil.rol)) redirect("/panel");
 
   return { supabase, perfil };
