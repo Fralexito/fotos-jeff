@@ -28,9 +28,9 @@ export const TIPO_CAMPANA: Record<string, string> = {
 };
 
 export const ESTADO_PEDIDO: Record<string, [string, string]> = {
-  pendiente: ["Pendiente", "p-warn"],
-  procesado: ["Procesado", "p-info"],
-  en_impresion: ["En impresión", "p-info"],
-  entregado: ["Entregado", "p-good"],
-  anulado: ["Anulado", "p-bad"],
+  pendiente: ["Pendiente", "b-warn"],
+  procesado: ["Procesado", "b-info"],
+  en_impresion: ["En impresión", "b-info"],
+  entregado: ["Entregado", "b-good"],
+  anulado: ["Anulado", "b-neutral"],
 };

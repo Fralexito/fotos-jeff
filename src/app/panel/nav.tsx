@@ -2,21 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconoCatalogo, IconoCobro, IconoColegio, IconoInicio } from "@/components/iconos";
+import { LayoutDashboard, Package, School, Wallet } from "lucide-react";
 
-const ICONOS = { inicio: IconoInicio, colegios: IconoColegio, cobros: IconoCobro, catalogo: IconoCatalogo };
+const ICONOS = { inicio: LayoutDashboard, colegios: School, cobros: Wallet, catalogo: Package };
 
-export type ItemNav = { href: string; texto: string; icono: keyof typeof ICONOS };
+export type ItemNav = { href: string; texto: string; icono: keyof typeof ICONOS; count?: number };
 
 export function Nav({ items }: { items: ItemNav[] }) {
   const ruta = usePathname();
-  return items.map(({ href, texto, icono }) => {
+  return items.map(({ href, texto, icono, count }) => {
     const Icono = ICONOS[icono];
-    const activo = href === "/panel" ? ruta === href : ruta.startsWith(href) || (href === "/panel/colegios" && ruta.startsWith("/panel/campanas"));
+    const activo =
+      href === "/panel"
+        ? ruta === href
+        : ruta.startsWith(href) || (href === "/panel/colegios" && /^\/panel\/(campanas|pedidos)/.test(ruta));
     return (
-      <Link key={href} href={href} className="navbtn" aria-current={activo ? "page" : undefined}>
-        <Icono />
+      <Link key={href} href={href} className="navlink" aria-current={activo ? "page" : undefined}>
+        <Icono className="i" />
         {texto}
+        {!!count && <span className="count">{count}</span>}
       </Link>
     );
   });

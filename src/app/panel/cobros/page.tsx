@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { CircleCheck, CircleDashed, CircleDot, Receipt, Search } from "lucide-react";
 import { PERMISOS, requirePerfil } from "@/lib/auth";
 import { Aviso } from "@/components/aviso";
+import { Avatar, Empty, PageHeader } from "@/components/ui";
 import { ESTADO_PEDIDO, S, fecha } from "@/lib/formato";
 import { registrarPago, verificarPago } from "../actions";
 
@@ -56,93 +58,131 @@ export default async function Cobros({
   }
 
   return (
-    <section>
-      <h1>Cobros</h1>
-      <p className="lead">Quién pagó y quién debe. Busca al alumno, escribe cuánto pagó y toca cómo pagó.</p>
+    <>
+      <PageHeader title="Cobros" subtitle="Quién pagó y quién debe. Busca al alumno, escribe el monto y elige cómo pagó." />
       <Aviso {...aviso} />
 
-      <div className="grid stats">
-        <div className="stat"><div className="lbl">Pagado completo</div><div className="num">{completos}</div></div>
-        <div className="stat"><div className="lbl">Con adelanto</div><div className="num">{adelanto}</div></div>
-        <div className={`stat ${sinPagar ? "alert" : ""}`}><div className="lbl">Sin pagar</div><div className="num">{sinPagar}</div></div>
+      <div className="kpis">
+        <div className="kpi">
+          <div className="top">Pagado completo <span className="ico"><CircleCheck className="i" /></span></div>
+          <div className="val">{completos}</div>
+          <div className="sub">pedidos sin saldo</div>
+        </div>
+        <div className="kpi">
+          <div className="top">Con adelanto <span className="ico warn"><CircleDot className="i" /></span></div>
+          <div className="val">{adelanto}</div>
+          <div className="sub">pagaron una parte</div>
+        </div>
+        <div className={`kpi ${sinPagar ? "alert" : ""}`}>
+          <div className="top">Sin pagar <span className="ico bad"><CircleDashed className="i" /></span></div>
+          <div className="val">{sinPagar}</div>
+          <div className="sub">aún no pagan nada</div>
+        </div>
       </div>
 
       {(porVerificar ?? []).length > 0 && (
-        <div className="card" id="verificar">
-          <h2>Pagos por verificar</h2>
-          <p className="lead">Revisa que cada Yape o Plin haya llegado al celular del negocio antes de confirmarlo.</p>
-          {(porVerificar ?? []).map((p) => {
-            const pedido = p.pedidos as unknown as { numero: number; alumnos: { nombres: string; apellidos: string } };
-            const quien = p.perfiles as unknown as { nombre: string } | null;
-            return (
-              <div className="row" key={p.id}>
-                <div className="grow">
-                  <b>{pedido.alumnos.apellidos}, {pedido.alumnos.nombres}</b>
-                  <div className="sub">
-                    Pedido N.º {pedido.numero} · {METODO[p.metodo]} op. {p.operacion ?? "—"} · {fecha(p.creado_en)}
-                    {quien && ` · anotó ${quien.nombre}`}
+        <div className="card warn" id="verificar">
+          <div className="card-head">
+            <div>
+              <h2>Pagos por verificar</h2>
+              <p>Revisa que cada Yape o Plin haya llegado al celular del negocio antes de confirmarlo.</p>
+            </div>
+          </div>
+          <div className="list">
+            {(porVerificar ?? []).map((p) => {
+              const pedido = p.pedidos as unknown as { numero: number; alumnos: { nombres: string; apellidos: string } };
+              const quien = p.perfiles as unknown as { nombre: string } | null;
+              return (
+                <div className="item" key={p.id}>
+                  <div className="main">
+                    <Avatar name={`${pedido.alumnos.nombres} ${pedido.alumnos.apellidos}`} />
+                    <div>
+                      <div className="title">{pedido.alumnos.apellidos}, {pedido.alumnos.nombres}</div>
+                      <div className="meta">
+                        Pedido N.º {pedido.numero} · {METODO[p.metodo]} · op. {p.operacion ?? "—"} · {fecha(p.creado_en)}
+                        {quien && ` · anotó ${quien.nombre}`}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="end">
+                    <span className="money">{S(p.monto)}</span>
+                    <form action={verificarPago} className="payform">
+                      <input type="hidden" name="pago_id" value={p.id} />
+                      <button className="btn sm" name="estado" value="confirmado">Sí llegó</button>
+                      <button className="btn danger sm" name="estado" value="rechazado">No llegó</button>
+                    </form>
                   </div>
                 </div>
-                <span className="money">{S(p.monto)}</span>
-                <form action={verificarPago} className="payopts">
-                  <input type="hidden" name="pago_id" value={p.id} />
-                  <button className="btn small" name="estado" value="confirmado">Sí llegó</button>
-                  <button className="btn small bad" name="estado" value="rechazado">No llegó</button>
-                </form>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
-      <form className="toolbar" action="/panel/cobros">
-        <label className="f" style={{ flex: 1, minWidth: 220 }}>
-          <input name="q" defaultValue={busqueda} placeholder="Buscar alumno por apellido, nombre o código" />
-        </label>
-        <button className="btn" type="submit">Buscar</button>
-        {busqueda && <Link className="btn ghost" href="/panel/cobros">Ver todos los que deben</Link>}
-      </form>
-
       <div className="card">
-        <h2>{busqueda ? `Pedidos de “${busqueda}”` : "Pedidos con saldo"}</h2>
-        {(pedidos ?? []).length === 0 && (
-          <p className="empty">
-            {busqueda
-              ? "No encontré pedidos. Para crear uno, abre la campaña del alumno y toca “Nuevo pedido”."
-              : "Nadie debe. Todo está cobrado."}
-          </p>
-        )}
-        {(pedidos ?? []).map((p) => {
-          const a = alumnos.get(p.alumno_id);
-          const saldo = Number(p.saldo);
-          const [estado, claseEstado] = ESTADO_PEDIDO[p.estado] ?? [p.estado, "p-info"];
-          const deuda = saldo <= 0 ? ["p-good", "Pagado"] : Number(p.pagado) > 0 ? ["p-warn", `Debe ${S(saldo)}`] : ["p-bad", `Debe ${S(saldo)}`];
-          return (
-            <div className="row" key={p.id}>
-              <div className="grow">
-                <b>{a ? `${a.apellidos}, ${a.nombres}` : "Alumno"}</b>
-                <div className="sub">
-                  Pedido N.º {p.numero} · total <span className="money">{S(p.total)}</span>
-                  {a && [a.grado, a.seccion].some(Boolean) && ` · ${[a.grado, a.seccion].filter(Boolean).join(" ")}`}
-                </div>
-              </div>
-              <span className={`pill ${claseEstado}`}>{estado}</span>
-              <span className={`pill ${deuda[0]}`}>{deuda[1]}</span>
-              {saldo > 0 && (
-                <form action={registrarPago} className="payopts">
-                  <input type="hidden" name="pedido_id" value={p.id} />
-                  <input type="hidden" name="q" value={busqueda} />
-                  <input name="monto" inputMode="decimal" defaultValue={saldo.toFixed(2)} aria-label="Monto en soles" />
-                  <input name="operacion" className="op" placeholder="N.º operación" aria-label="Número de operación (Yape o Plin)" />
-                  <button name="metodo" value="efectivo">Efectivo</button>
-                  <button name="metodo" value="yape">Yape</button>
-                  <button name="metodo" value="plin">Plin</button>
-                </form>
-              )}
+        <div className="card-head">
+          <form action="/panel/cobros" style={{ display: "flex", gap: 8, flex: 1, flexWrap: "wrap" }}>
+            <div className="search">
+              <Search className="i" />
+              <input className="input" name="q" defaultValue={busqueda} placeholder="Buscar alumno por apellido, nombre o código" />
             </div>
-          );
-        })}
+            <button className="btn secondary" type="submit">Buscar</button>
+            {busqueda && <Link className="btn ghost" href="/panel/cobros">Limpiar</Link>}
+          </form>
+        </div>
+        <div className="card-head" style={{ background: "var(--surface-2)", paddingTop: 10, paddingBottom: 10 }}>
+          <h2 style={{ fontSize: 14 }}>{busqueda ? `Pedidos de “${busqueda}”` : "Pedidos con saldo pendiente"}</h2>
+          <span className="meta" style={{ color: "var(--muted)", fontSize: 13 }}>{(pedidos ?? []).length} pedidos</span>
+        </div>
+        {(pedidos ?? []).length === 0 ? (
+          <Empty icon={Receipt} title={busqueda ? "Sin pedidos" : "Todo cobrado"}>
+            {busqueda
+              ? "Para crear un pedido, abre la campaña del alumno y toca “Nuevo pedido”."
+              : "No hay pedidos con saldo pendiente."}
+          </Empty>
+        ) : (
+          <div className="list">
+            {(pedidos ?? []).map((p) => {
+              const a = alumnos.get(p.alumno_id);
+              const nombre = a ? `${a.apellidos}, ${a.nombres}` : "Alumno";
+              const saldo = Number(p.saldo);
+              const [estado, claseEstado] = ESTADO_PEDIDO[p.estado] ?? [p.estado, "b-neutral"];
+              const deuda = saldo <= 0 ? ["b-good", "Pagado"] : Number(p.pagado) > 0 ? ["b-warn", `Debe ${S(saldo)}`] : ["b-bad", `Debe ${S(saldo)}`];
+              return (
+                <div className="item" key={p.id}>
+                  <div className="main">
+                    <Avatar name={a ? `${a.nombres} ${a.apellidos}` : "?"} />
+                    <div>
+                      <div className="title">{nombre}</div>
+                      <div className="meta">
+                        N.º {p.numero} · total {S(p.total)} · pagado {S(p.pagado)}
+                        {a && (a.grado || a.seccion) && ` · ${[a.grado && `${a.grado}.º`, a.seccion].filter(Boolean).join(" ")}`}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="end">
+                    <span className={`badge ${claseEstado}`}>{estado}</span>
+                    <span className={`badge ${deuda[0]}`}>{deuda[1]}</span>
+                    {saldo > 0 && (
+                      <form action={registrarPago} className="payform">
+                        <input type="hidden" name="pedido_id" value={p.id} />
+                        <input type="hidden" name="q" value={busqueda} />
+                        <input className="input" name="monto" inputMode="decimal" defaultValue={saldo.toFixed(2)} aria-label="Monto en soles" />
+                        <input className="input op" name="operacion" placeholder="N.º operación" aria-label="Número de operación (Yape o Plin)" />
+                        <div className="seg">
+                          <button name="metodo" value="efectivo">Efectivo</button>
+                          <button name="metodo" value="yape">Yape</button>
+                          <button name="metodo" value="plin">Plin</button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </section>
+    </>
   );
 }
