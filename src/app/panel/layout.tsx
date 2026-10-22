@@ -67,6 +67,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <small>Estudio fotográfico · Nauta</small>
           </span>
         </Link>
+        <nav className="side-nav" aria-label="Menú">
         {sencilla ? (
           <>
             <div className="section">Lo de cada día</div>
@@ -86,7 +87,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <Nav items={cuenta} />
           </>
         )}
-        <div className="grow" />
+        </nav>
         <div className="usercard">
           <Avatar name={perfil.nombre} />
           <div className="who">

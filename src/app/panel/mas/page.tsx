@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Boxes, CalendarDays, ChartColumn, Factory, Handshake, Images, LayoutDashboard, Package, School, Settings, Sheet, Sun, Vault, Wallet } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { puede, requirePerfil } from "@/lib/auth";
+import { salir } from "../../login/actions";
 import { PageHeader } from "@/components/ui";
 
 // Todas las secciones en tarjetas grandes (en celular, la barra de abajo solo muestra cinco).
@@ -33,6 +35,9 @@ export default async function Mas() {
           </Link>
         ))}
       </div>
+      <form action={salir} className="mas-salir">
+        <button type="submit" className="btn secondary"><LogOut className="i" /> Cerrar sesión ({perfil.nombre.split(" ")[0]})</button>
+      </form>
     </>
   );
 }
