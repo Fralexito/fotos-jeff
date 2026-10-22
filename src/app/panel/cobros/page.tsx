@@ -62,6 +62,69 @@ export default async function Cobros({
     (data ?? []).forEach((a) => alumnos.set(a.id, a));
   }
 
+  // Vista sencilla: como una app de pagos. Buscar, ver quién debe y cobrar con un toque.
+  if (perfil.preferencias.vista === "sencilla") {
+    const lista = (pedidos ?? []).filter((p) => Number(p.saldo) > 0);
+    return (
+      <div className="simple">
+        <header className="simple-hola"><h1>Cobrar</h1></header>
+        <Aviso {...aviso} />
+
+        {(porVerificar ?? []).map((p) => {
+          const pedido = p.pedidos as unknown as { alumnos: { nombres: string; apellidos: string } };
+          return (
+            <div className="simple-verificar" key={p.id}>
+              <p><b>¿Llegó este {METODO[p.metodo]}?</b><span>{pedido.alumnos.nombres} {pedido.alumnos.apellidos.split(" ")[0]} · {S(p.monto)}</span></p>
+              <form action={verificarPago}>
+                <input type="hidden" name="pago_id" value={p.id} />
+                <button className="si" name="estado" value="confirmado">Sí llegó</button>
+                <button className="no" name="estado" value="rechazado">No llegó</button>
+              </form>
+            </div>
+          );
+        })}
+
+        <form action="/panel/cobros" className="bigsearch">
+          <Search />
+          <input name="q" defaultValue={busqueda} placeholder="Apellido del alumno" aria-label="Buscar alumno" />
+        </form>
+
+        <h2 className="simple-sub">{busqueda ? `Resultados de “${busqueda}”` : "Deben"}</h2>
+        {lista.length === 0 ? (
+          <p className="simple-vacio">{busqueda ? "No debe nada o no lo encontré." : "Nadie debe. ¡Todo cobrado!"}</p>
+        ) : (
+          <div className="simple-lista">
+            {lista.map((p) => {
+              const a = alumnos.get(p.alumno_id);
+              const saldo = Number(p.saldo);
+              return (
+                <details className="simple-fila" key={p.id}>
+                  <summary>
+                    <span className="quien"><b>{a ? `${a.nombres.split(" ")[0]} ${a.apellidos.split(" ")[0]}` : "Alumno"}</b>
+                      <small>{a && (a.grado || a.seccion) ? `${a.grado ?? ""}.º ${a.seccion ?? ""}` : ""}</small></span>
+                    <span className="debe">{S(saldo)}</span>
+                    <span className="cobrar">Cobrar</span>
+                  </summary>
+                  <form action={registrarPago} className="simple-pago">
+                    <input type="hidden" name="pedido_id" value={p.id} />
+                    <input type="hidden" name="q" value={busqueda} />
+                    <label>¿Cuánto pagó?<input name="monto" inputMode="decimal" defaultValue={saldo.toFixed(2)} /></label>
+                    <p>¿Cómo pagó?</p>
+                    <div className="metodos">
+                      <button name="metodo" value="efectivo">Efectivo</button>
+                      <button name="metodo" value="yape">Yape</button>
+                      <button name="metodo" value="plin">Plin</button>
+                    </div>
+                  </form>
+                </details>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <>
       <PageHeader modulo="cobros"

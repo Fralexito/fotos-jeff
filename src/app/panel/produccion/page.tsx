@@ -31,6 +31,7 @@ export default async function Produccion({
   const { campana = "", vista = "tablero", ...aviso } = await searchParams;
   const { supabase, perfil } = await requirePerfil();
   const sede = filtroSede(perfil.preferencias.sede);
+  const sencilla = perfil.preferencias.vista === "sencilla";
 
   let qCamp = supabase
     .from("campanas")
@@ -69,13 +70,14 @@ export default async function Produccion({
     <>
       <PageHeader
         modulo="produccion"
-        title="Producción"
-        subtitle="El camino de cada pedido: edición, impresión y entrega."
+        title={sencilla && vista === "entregas" ? "Entregar fotos" : "Producción"}
+        subtitle={sencilla ? undefined : "El camino de cada pedido: edición, impresión y entrega."}
+        crumbs={sencilla && vista === "entregas" && campana ? [{ href: "/panel/produccion?vista=entregas", label: "Elegir otro colegio" }] : undefined}
         actions={vista === "entregas" && campana ? <Imprimir label="Imprimir lista" /> : null}
       />
       <Aviso {...aviso} />
 
-      <form className="filterbar" action="/panel/produccion">
+      <form className="filterbar detalle" action="/panel/produccion">
         {vista !== "tablero" && <input type="hidden" name="vista" value={vista} />}
         <label className="field inline">
           Campaña
@@ -99,12 +101,12 @@ export default async function Produccion({
         ))}
       </div>
 
-      <Tabs
+      <div className="detalle"><Tabs
         items={[
           { href: conVista("tablero"), label: "Tablero", active: vista === "tablero" },
           { href: conVista("entregas"), label: "Entregas por salón", active: vista === "entregas" },
         ]}
-      />
+      /></div>
 
       {pedidos.length === 0 && (
         <div className="card"><Empty icon={Factory} title="No hay pedidos">Los pedidos aparecen aquí cuando se registran desde Cobros o desde la lista de alumnos.</Empty></div>
@@ -152,7 +154,21 @@ export default async function Produccion({
       )}
 
       {vista === "entregas" && pedidos.length > 0 && !campana && (
-        <div className="card"><Empty icon={Truck} title="Elige una campaña">La lista de entregas se arma por colegio y salón.</Empty></div>
+        <div className="card">
+          <div className="card-head"><div><h2>¿De qué colegio vas a entregar?</h2><p>Toca uno para ver la lista por salón.</p></div></div>
+          <div className="elige-colegio">
+            {(campanas ?? []).map((c) => {
+              const listos = pedidos.filter((p) => p.campana_id === c.id && p.estado === "en_impresion").length;
+              const col = c.colegios as unknown as { nombre: string } | null;
+              return (
+                <Link key={c.id} href={`/panel/produccion?vista=entregas&campana=${c.id}`}>
+                  <span><b>{col?.nombre}</b><small>{c.nombre}</small></span>
+                  <span className={`badge ${listos ? "b-good" : "b-neutral"}`}>{listos} {listos === 1 ? "listo" : "listos"}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {vista === "entregas" && campana && pedidos.length > 0 && (
