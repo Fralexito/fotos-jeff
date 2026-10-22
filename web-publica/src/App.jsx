@@ -584,6 +584,7 @@ function Prices({ plan, setPlan, onSend }) {
 
 function Process() {
   const ref = useRef(null)
+  const reduce = useReducedMotion()
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const [step, setStep] = useState(0)
   useMotionValueEvent(p, 'change', v => setStep(Math.min(3, Math.floor(v * 4.0001))))
@@ -600,16 +601,16 @@ function Process() {
       <div className="story" ref={ref}>
         <div className="story-in">
           <ol className="ssteps">
-            {STEPS.map(([t, d, x], i) => <li key={t} className={step === i ? 'on' : ''}><h3>0{i + 1} {t} <small>{d}</small></h3><p>{x}</p></li>)}
+            {STEPS.map(([t, d, x], i) => <li key={t} className={reduce || step === i ? 'on' : ''}><h3>0{i + 1} {t} <small>{d}</small></h3><p>{x}</p></li>)}
           </ol>
           <div className="stage" aria-hidden="true">
             <div className="sp">
-              <motion.svg className="s-hang" viewBox="0 0 130 60" fill="none" style={{ opacity: hO, y: hY }}><path d="M12 60 65 8l53 52" stroke="currentColor" strokeWidth="2" /><circle cx="65" cy="7" r="5" fill="currentColor" /></motion.svg>
-              <motion.div className="s-frame" style={{ opacity: frO, scale: frS }} />
-              <motion.div className="s-mat" style={{ opacity: matO, scale: matS }} />
-              <div className="s-photo"><motion.div style={{ position: 'absolute', inset: 0, filter, scale: phS, x: phX }}><Pt look={LOOKS[1]} grad /></motion.div></div>
-              <motion.div className="s-vf" style={{ opacity: vfO, scale: vfS }}><i /><i /><i /><i /><span className="rec">● REC</span></motion.div>
-              <motion.span className="s-tag" style={{ opacity: tO, y: tY }}>LISTO PARA COLGAR</motion.span>
+              <motion.svg className="s-hang" viewBox="0 0 130 60" fill="none" style={reduce ? {} : { opacity: hO, y: hY }}><path d="M12 60 65 8l53 52" stroke="currentColor" strokeWidth="2" /><circle cx="65" cy="7" r="5" fill="currentColor" /></motion.svg>
+              <motion.div className="s-frame" style={reduce ? {} : { opacity: frO, scale: frS }} />
+              <motion.div className="s-mat" style={reduce ? {} : { opacity: matO, scale: matS }} />
+              <div className="s-photo"><motion.div style={reduce ? { position: 'absolute', inset: 0 } : { position: 'absolute', inset: 0, filter, scale: phS, x: phX }}><Pt look={LOOKS[1]} grad /></motion.div></div>
+              {!reduce && <motion.div className="s-vf" style={{ opacity: vfO, scale: vfS }}><i /><i /><i /><i /><span className="rec">● REC</span></motion.div>}
+              <motion.span className="s-tag" style={reduce ? {} : { opacity: tO, y: tY }}>LISTO PARA COLGAR</motion.span>
             </div>
           </div>
         </div>

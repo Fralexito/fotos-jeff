@@ -740,3 +740,12 @@ input[type=range]::-webkit-slider-thumb{background:var(--gold)}
   .story-in{height:calc(100svh - var(--hh) - 104px)}
   .ssteps h3{font-size:22px}
 }
+/* proceso sin animación: estático y sin solapes */
+@media (prefers-reduced-motion:reduce){
+  .story{height:auto;margin-bottom:40px}
+  .story-in{position:relative;top:0;height:auto;align-items:stretch}
+  .ssteps{overflow:visible}
+  .ssteps li,.ssteps li p{opacity:1;display:block}
+  .stage{min-height:420px}
+}
+@media (prefers-reduced-motion:reduce) and (max-width:1000px){.stage{min-height:340px}}
