@@ -7,7 +7,7 @@
 - [ ] Cargar datos reales: colegios, campañas, alumnos, precios del catálogo.
 - [ ] Probar el flujo completo de fotos subiendo un lote real en `/panel/fotos`.
 - [ ] Crear usuarios para Liz y otros encargados cuando lo pidan.
-- [ ] **Asistente IA**: poner `ANTHROPIC_API_KEY` en Vercel (proyecto del panel, Production) y volver a desplegar. Cuesta por uso (aprox. S/ 0,05–0,10 por pregunta).
+- [ ] **Asistente IA**: poner `ANTHROPIC_API_KEY` en Vercel (proyecto del panel, Production) y volver a desplegar. Cuesta por uso (aprox. S/ 0,10–0,25 por pregunta).
 - [ ] Fijar la meta del mes por sede (Inicio → "Fijar meta") y registrar las cámaras y equipos.
 
 ## Web pública
