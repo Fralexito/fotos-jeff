@@ -21,6 +21,7 @@ def foto(ruta, w=600, h=900, fecha="2026:10:01 09:00:00", color=(120, 90, 60), s
     im = Image.fromarray(arr)
     ex = Image.Exif()
     ex.get_ifd(0x8769)[36867] = fecha
+    ex[306] = fecha  # DateTime: algunas versiones de Pillow no guardan el sub-IFD creado así
     os.makedirs(os.path.dirname(ruta), exist_ok=True)
     im.save(ruta, "JPEG", exif=ex)
     return ruta
