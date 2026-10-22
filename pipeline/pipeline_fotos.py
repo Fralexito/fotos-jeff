@@ -271,7 +271,13 @@ def rellenar_huecos_toga(alpha: np.ndarray, anc: Anclajes) -> np.ndarray:
     hueco[:y_h] = False
     out = alpha.copy()
     out[hueco] = 1.0
-    return out
+    # tela satinada que refleja la pared: la red la deja semitransparente y el fondo nuevo se
+    # trasluce (manchas cian en la estola). Dentro de la silueta, bajo los hombros, es opaca.
+    r = max(3, int(0.06 * anc.cara[2]))
+    interior = cv2.erode((out > 0.5).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1)))
+    interior = cv2.GaussianBlur(interior.astype(np.float32), (0, 0), r / 3)
+    interior[:y_h] = 0
+    return np.maximum(out, interior)
 
 
 def mascara_piel_protegida(forma: tuple, anc: Anclajes, f: float = 1.0) -> np.ndarray:
