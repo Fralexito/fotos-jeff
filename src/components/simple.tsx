@@ -13,24 +13,35 @@ export function SimpleTitulo({ titulo, volver, sub }: { titulo: string; volver?:
   );
 }
 
-export type Fila = { key: string; titulo: string; sub?: string; valor?: string; tono?: "bien" | "debe" | "suave"; href?: string };
+export type Fila = { key: string; titulo: string; sub?: string; valor?: string; tono?: "bien" | "debe" | "suave"; href?: string; avatar?: string };
+
+// Círculo de color con iniciales: el mismo nombre siempre da el mismo color.
+export function SimpleAvatar({ nombre }: { nombre: string }) {
+  const limpio = nombre.replace(/^(I\.?E\.?|Colegio|IEP|I\.E\.P\.)\s+/i, "").replace(/[,.]/g, " ");
+  const partes = limpio.split(/\s+/).filter(Boolean);
+  const ini = ((partes[0]?.[0] ?? "") + (partes[1]?.[0] ?? "")).toUpperCase();
+  let h = 0;
+  for (const c of nombre) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return <span className="simple-av" style={{ "--h": h } as React.CSSProperties} aria-hidden>{ini}</span>;
+}
 
 export function SimpleLista({ filas, vacio }: { filas: Fila[]; vacio: string }) {
   if (filas.length === 0) return <p className="simple-vacio">{vacio}</p>;
   return (
     <div className="simple-lista">
-      {filas.map((f) => {
+      {filas.map((f, i) => {
         const dentro = (
           <>
+            {f.avatar && <SimpleAvatar nombre={f.avatar} />}
             <span className="quien"><b>{f.titulo}</b>{f.sub && <small>{f.sub}</small>}</span>
             {f.valor && <span className={`valor ${f.tono ?? ""}`}>{f.valor}</span>}
             {f.href && <ChevronRight className="flecha" />}
           </>
         );
         return f.href ? (
-          <Link key={f.key} className="simple-item" href={f.href}>{dentro}</Link>
+          <Link key={f.key} className="simple-item" href={f.href} style={{ "--i": Math.min(i, 12) } as React.CSSProperties}>{dentro}</Link>
         ) : (
-          <div key={f.key} className="simple-item">{dentro}</div>
+          <div key={f.key} className="simple-item" style={{ "--i": Math.min(i, 12) } as React.CSSProperties}>{dentro}</div>
         );
       })}
     </div>

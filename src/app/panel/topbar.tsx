@@ -33,6 +33,17 @@ export function Topbar({ cobros, catalogo, clientes, prefs }: { cobros: boolean;
   const ruta = usePathname();
   const params = useSearchParams();
   const input = useRef<HTMLInputElement>(null);
+  const espera = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Resultados mientras se escribe: lleva a Buscar y actualiza la lista sin perder lo escrito.
+  const buscarVivo = (q: string) => {
+    clearTimeout(espera.current);
+    espera.current = setTimeout(() => {
+      const t = q.trim();
+      if (!t && ruta !== "/panel/buscar") return;
+      const destino = t ? `/panel/buscar?q=${encodeURIComponent(t)}` : "/panel/buscar";
+      if (ruta === "/panel/buscar") router.replace(destino, { scroll: false }); else router.push(destino);
+    }, 250);
+  };
   const menu = useRef<HTMLDivElement>(null);
   const [abierto, setAbierto] = useState(false);
 
@@ -72,8 +83,9 @@ export function Topbar({ cobros, catalogo, clientes, prefs }: { cobros: boolean;
         <Search className="i" />
         <input
           ref={input}
-          key={ruta === "/panel/buscar" ? params.get("q") : "x"}
           defaultValue={ruta === "/panel/buscar" ? params.get("q") ?? "" : ""}
+          onChange={(e) => buscarVivo(e.target.value)}
+          autoComplete="off"
           placeholder="Buscar alumno, código o colegio"
           aria-label="Buscar en todo el sistema"
         />

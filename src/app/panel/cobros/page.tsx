@@ -6,6 +6,8 @@ import { Aviso } from "@/components/aviso";
 import { Avatar, Empty, PageHeader } from "@/components/ui";
 import { ESTADO_PEDIDO, S, fecha } from "@/lib/formato";
 import { registrarPago, verificarPago } from "../actions";
+import { BusquedaViva } from "@/components/busqueda-viva";
+import { SimpleAvatar } from "@/components/simple";
 
 type Saldo = { id: string; numero: number; alumno_id: string; estado: string; total: number; pagado: number; saldo: number };
 type Alumno = { id: string; nombres: string; apellidos: string; grado: string | null; seccion: string | null };
@@ -84,22 +86,20 @@ export default async function Cobros({
           );
         })}
 
-        <form action="/panel/cobros" className="bigsearch">
-          <Search />
-          <input name="q" defaultValue={busqueda} placeholder="Apellido del alumno" aria-label="Buscar alumno" />
-        </form>
+        <BusquedaViva placeholder="Escribe el apellido del alumno" />
 
         <h2 className="simple-sub">{busqueda ? `Resultados de “${busqueda}”` : "Deben"}</h2>
         {lista.length === 0 ? (
           <p className="simple-vacio">{busqueda ? "No debe nada o no lo encontré." : "Nadie debe. ¡Todo cobrado!"}</p>
         ) : (
           <div className="simple-lista">
-            {lista.map((p) => {
+            {lista.map((p, i) => {
               const a = alumnos.get(p.alumno_id);
               const saldo = Number(p.saldo);
               return (
-                <details className="simple-fila" key={p.id}>
+                <details className="simple-fila" key={p.id} style={{ "--i": Math.min(i, 12) } as React.CSSProperties}>
                   <summary>
+                    {a && <SimpleAvatar nombre={`${a.nombres} ${a.apellidos}`} />}
                     <span className="quien"><b>{a ? `${a.nombres.split(" ")[0]} ${a.apellidos.split(" ")[0]}` : "Alumno"}</b>
                       <small>{a && (a.grado || a.seccion) ? `${a.grado ?? ""}.º ${a.seccion ?? ""}` : ""}</small></span>
                     <span className="debe">{S(saldo)}</span>
@@ -191,14 +191,9 @@ export default async function Cobros({
 
       <div className="card">
         <div className="card-head">
-          <form action="/panel/cobros" style={{ display: "flex", gap: 8, flex: 1, flexWrap: "wrap" }}>
-            <div className="search">
-              <Search className="i" />
-              <input className="input" name="q" defaultValue={busqueda} placeholder="Buscar alumno por apellido, nombre o código" />
-            </div>
-            <button className="btn secondary" type="submit">Buscar</button>
-            {busqueda && <Link className="btn ghost" href="/panel/cobros">Limpiar</Link>}
-          </form>
+          <div style={{ display: "flex", gap: 8, flex: 1, flexWrap: "wrap" }}>
+            <BusquedaViva className="bigsearch compacto" placeholder="Buscar alumno por apellido, nombre o código" />
+          </div>
         </div>
         <div className="card-head" style={{ background: "var(--surface-2)", paddingTop: 10, paddingBottom: 10 }}>
           <h2 style={{ fontSize: 14 }}>{busqueda ? `Pedidos de “${busqueda}”` : "Pedidos con saldo pendiente"}</h2>
