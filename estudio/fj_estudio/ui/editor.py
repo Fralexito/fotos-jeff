@@ -331,6 +331,12 @@ class Editor(QWidget):
         detector = None
         from ..motor_local import buscar_modelo_cara
         modelo_cara = b.ajuste("modelo_cara") or buscar_modelo_cara()
+        if not modelo_cara:
+            from .. import modelos
+            try:
+                modelo_cara = modelos.cara()  # ~4 MB, una sola vez
+            except OSError:
+                modelo_cara = None
         if modelo_cara and os.path.exists(modelo_cara):
             try:
                 from ..ia.verificar import detector_mediapipe

@@ -6,10 +6,14 @@ import os
 import sys
 
 from PySide6.QtCore import QSettings, Qt
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+if getattr(sys, "frozen", False):
+    # instalado (.exe): numba (pymatting) no puede guardar su caché en Archivos de programa
+    os.environ.setdefault("NUMBA_CACHE_DIR", os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")),
+                                                          "FOTOS JEFFERSON Estudio", "numba"))
 
 from fj_estudio import registro  # noqa: E402
 from fj_estudio.db import Base  # noqa: E402
@@ -46,12 +50,71 @@ def elegir_biblioteca(ajustes: QSettings, forzar: bool) -> str | None:
     return ruta
 
 
+def autoprueba(salida: str) -> int:
+    """Prueba del .exe ya armado (la corre GitHub antes de publicar): abre todas las pantallas sin mostrarlas,
+    carga cada librería y edita una foto sintética con el motor real. Resultado en `salida` (JSON)."""
+    import json
+    import tempfile
+    import traceback
+    res = {"ok": False, "pasos": []}
+    try:
+        app = QApplication.instance() or QApplication(sys.argv)
+        app.setStyleSheet(QSS)
+        tmp = tempfile.mkdtemp(prefix="fj_prueba_")
+        base = Base(os.path.join(tmp, "biblioteca"), usuario="prueba")
+        v = Ventana(Estado(base, Colas(), QSettings(os.path.join(tmp, "a.ini"), QSettings.IniFormat)))
+        v.show()
+        app.processEvents()
+        res["pasos"].append("ventana")
+        import cv2
+        import keyring
+        import mediapipe  # noqa: F401
+        import numpy as np
+        import onnxruntime  # noqa: F401
+        import openpyxl  # noqa: F401
+        from PIL import Image
+        res["pasos"].append(f"librerías (keyring: {keyring.get_keyring().__class__.__name__})")
+        from fj_estudio import modelos
+        from fj_estudio.ia.verificar import detector_mediapipe
+        from fj_estudio.motor_local import cargar_pipeline
+        cara = modelos.cara()
+        detector_mediapipe(cara)
+        res["pasos"].append("modelo de cara")
+        h, w = 1600, 1200
+        img = np.full((h, w, 3), 128, np.uint8)
+        m = np.zeros((h, w), np.uint8)
+        cv2.fillPoly(m, [np.array([[300, 1000], [900, 1000], [1050, 1600], [150, 1600]])], 255)
+        cv2.rectangle(m, (540, 820), (660, 1010), 255, -1)
+        cv2.ellipse(m, (600, 700), (130, 170), 0, 0, 360, 255, -1)
+        img[m > 0] = (190, 140, 115)
+        Image.fromarray(img).save(os.path.join(tmp, "in.jpg"), quality=95)
+        Image.fromarray(cv2.GaussianBlur(m, (5, 5), 1.2)).save(os.path.join(tmp, "a.png"))
+        pf = cargar_pipeline()
+        qa = pf.procesar(os.path.join(tmp, "in.jpg"), os.path.join(tmp, "out.jpg"), "20x30",
+                         os.path.join(tmp, "a.png"), modelo_cara=cara)
+        assert os.path.getsize(os.path.join(tmp, "out.jpg")) > 10_000
+        res["pasos"].append(f"motor: {qa.get('semaforo')}")
+        v.close()
+        res["ok"] = True
+    except BaseException:
+        res["error"] = traceback.format_exc()
+    with open(salida, "w", encoding="utf-8") as f:
+        json.dump(res, f, ensure_ascii=False, indent=2)
+    return 0 if res["ok"] else 1
+
+
 def main():
+    if "--autoprueba" in sys.argv:
+        os.environ["QT_QPA_PLATFORM"] = "offscreen"
+        return autoprueba(sys.argv[sys.argv.index("--autoprueba") + 1])
     QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
     app.setApplicationName("FOTOS JEFFERSON Estudio")
     app.setOrganizationName("FOTOS JEFFERSON")
     app.setStyle("Fusion")
+    icono = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "empaque", "icono.png")
+    if os.path.exists(icono):
+        app.setWindowIcon(QIcon(icono))
     app.setStyleSheet(QSS)
     ajustes = QSettings()
     forzar = bool(QGuiApplication.queryKeyboardModifiers() & Qt.ShiftModifier)

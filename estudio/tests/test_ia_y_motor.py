@@ -323,3 +323,31 @@ def test_abrir_ojos_usa_la_toma_con_ojos_abiertos(base, salon, tmp_path):
             return Image.new("RGB", (400, 600), (10, 10, 10))
     r = sv.pedir(base, f1, ["ojos"], proveedor=P("openai", "F", "m"), detector=detector)
     assert marcas["ref"] and r["veredicto"].aprobado, r["veredicto"].motivos
+
+
+def test_motor_externo_un_proceso_para_varias_fotos(tmp_path):
+    """El .exe usa el Python del motor por un proceso aparte que queda abierto entre fotos."""
+    import sys as _sys
+    from fj_estudio.motor_local import MotorExterno
+    (tmp_path / "pipeline_fotos.py").write_text(
+        "import os, shutil\n"
+        "print('ruido que no debe romper nada')\n"
+        "def procesar(a, b, producto, fondo_rgb=None, dpi=300, modelo_onnx=None, modelo_cara=None):\n"
+        "    if producto == 'malo':\n"
+        "        raise ValueError('medida rara')\n"
+        "    shutil.copy(a, b)\n"
+        "    return {'semaforo': 'verde', 'alertas': [], 'pid': os.getpid(), 'producto': producto}\n",
+        encoding="utf-8")
+    src = tmp_path / "a.jpg"
+    src.write_bytes(b"x")
+    m = MotorExterno(_sys.executable, str(tmp_path))
+    try:
+        r1 = m(str(src), str(tmp_path / "b.jpg"), "20x30", (1, 1, 1), 300)
+        r2 = m(str(src), str(tmp_path / "c.jpg"), "13x18", (1, 1, 1), 300)
+        assert r1["semaforo"] == "verde" and r1["pid"] == r2["pid"]
+        assert (tmp_path / "c.jpg").exists()
+        with pytest.raises(RuntimeError, match="medida rara"):
+            m(str(src), str(tmp_path / "d.jpg"), "malo", (1, 1, 1), 300)
+        assert m(str(src), str(tmp_path / "e.jpg"), "20x30", (1, 1, 1), 300)["pid"] == r1["pid"]
+    finally:
+        m.cerrar()
