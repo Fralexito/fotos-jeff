@@ -20,11 +20,11 @@ alter policy "staff pedido_items" on pedido_items using (privado.es_staff()) wit
 alter policy "staff pagos" on pagos using (privado.es_staff()) with check (privado.es_staff());
 alter policy "staff edita catalogo" on productos using (privado.es_staff()) with check (privado.es_staff());
 
-drop policy "catalogo publico" on productos;
-create policy "catalogo publico" on productos for select to anon, authenticated using (activo);
+alter policy "catalogo publico" on productos using (activo);
 
 alter policy "staff storage" on storage.objects
   using (bucket_id in ('originales', 'procesadas', 'vouchers') and privado.es_staff())
   with check (bucket_id in ('originales', 'procesadas', 'vouchers') and privado.es_staff());
 
-drop function public.es_staff();
+-- Sin DROP para no requerir confirmación manual; la función vieja queda sin permisos.
+revoke execute on function public.es_staff() from public, anon, authenticated;
