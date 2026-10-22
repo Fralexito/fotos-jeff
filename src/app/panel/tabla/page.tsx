@@ -187,7 +187,7 @@ export default async function Tabla({ searchParams }: { searchParams: Promise<{ 
         subtitle="Todo ordenado como en Excel. Toca un título para ordenar y escribe debajo para filtrar."
       />
       <Tabs items={hojas.map(([k, t]) => ({ href: `/panel/tabla?hoja=${k}`, label: t, active: k === hoja }))} />
-      <Hoja key={hoja} columnas={columnas} filas={filas} archivo={`${hoja}-fotos-jeff`} fecha={fecha} />
+      <Hoja key={hoja} columnas={columnas} filas={filas} archivo={`${hoja}-fotos-jefferson`} fecha={fecha} />
     </>
   );
 }

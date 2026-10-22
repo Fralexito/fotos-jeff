@@ -189,7 +189,7 @@ export default async function Clientes({
                           </span>
                         </Link>
                         <footer>
-                          {whatsapp(o.telefono) ? <WhatsApp href={whatsapp(o.telefono, `Hola ${o.contacto_nombre ?? ""}, le saluda Fotos Jeff.`)} label="" /> : <span />}
+                          {whatsapp(o.telefono) ? <WhatsApp href={whatsapp(o.telefono, `Hola ${o.contacto_nombre ?? ""}, le saluda Fotos Jefferson.`)} label="" /> : <span />}
                           {i < COLUMNAS.length - 1 ? (
                             <form action={moverOportunidad}>
                               <input type="hidden" name="id" value={o.id} />
@@ -325,7 +325,7 @@ export default async function Clientes({
                       <td><div className="person"><Avatar name={c.nombre} /><div><b>{c.nombre}</b><small>{CARGO[c.cargo]}{c.email && ` · ${c.email}`}</small></div></div></td>
                       <td>{c.colegio_id ? <Link href={`/panel/colegios/${c.colegio_id}`}>{c.colegios?.nombre}</Link> : "—"}</td>
                       <td>{c.telefono ?? "—"}</td>
-                      <td className="num"><WhatsApp href={whatsapp(c.telefono, `Hola ${c.nombre.split(" ")[0]}, le saluda Fotos Jeff.`)} /></td>
+                      <td className="num"><WhatsApp href={whatsapp(c.telefono, `Hola ${c.nombre.split(" ")[0]}, le saluda Fotos Jefferson.`)} /></td>
                     </tr>
                   ))}
                 </tbody>

@@ -58,7 +58,7 @@ export default async function Produccion({
   const salon = (p: Pedido) => [p.alumnos?.grado, p.alumnos?.seccion].filter(Boolean).join(" ") || "Sin salón";
   const items = (p: Pedido) => p.pedido_items.map((i) => `${i.cantidad}× ${i.productos?.nombre ?? ""}`).join(", ");
   const avisoListo = (p: Pedido) =>
-    whatsapp(p.alumnos?.apoderado_telefono, `Hola, le saluda Fotos Jeff. El pedido N.º ${p.numero} de ${p.alumnos?.nombres} ya está listo para recoger.${(saldo.get(p.id) ?? 0) > 0 ? ` Saldo pendiente: ${S(saldo.get(p.id))}.` : ""}`);
+    whatsapp(p.alumnos?.apoderado_telefono, `Hola, le saluda Fotos Jefferson. El pedido N.º ${p.numero} de ${p.alumnos?.nombres} ya está listo para recoger.${(saldo.get(p.id) ?? 0) > 0 ? ` Saldo pendiente: ${S(saldo.get(p.id))}.` : ""}`);
 
   return (
     <>

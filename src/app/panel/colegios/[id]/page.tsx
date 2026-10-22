@@ -156,7 +156,7 @@ export default async function Colegio({
                     <Avatar name={c.nombre} />
                     <div><div className="title">{c.nombre}</div><div className="meta">{CARGO[c.cargo]}{c.telefono && ` · ${c.telefono}`}</div></div>
                   </div>
-                  <div className="end"><WhatsApp href={whatsapp(c.telefono, `Hola ${c.nombre.split(" ")[0]}, le saluda Fotos Jeff.`)} /></div>
+                  <div className="end"><WhatsApp href={whatsapp(c.telefono, `Hola ${c.nombre.split(" ")[0]}, le saluda Fotos Jefferson.`)} /></div>
                 </div>
               ))}
             </div>

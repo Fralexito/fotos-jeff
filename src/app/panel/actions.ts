@@ -200,10 +200,19 @@ export async function crearProducto(fd: FormData) {
     descripcion: opc(fd, "descripcion"),
     precio: Number(txt(fd, "precio").replace(",", ".")),
     es_combo: fd.get("es_combo") === "on",
+    nivel: nivelValido(txt(fd, "nivel")),
   });
   if (error) volver("/panel/catalogo", { error: error.code === "23505" ? "Ya existe un producto con ese código." : error.message });
   revalidatePath("/panel/catalogo");
   volver("/panel/catalogo", { ok: "Producto agregado." });
+}
+
+const nivelValido = (v: string) => (["inicial", "primaria", "secundaria", "superior"].includes(v) ? v : null);
+
+export async function cambiarNivelProducto(fd: FormData) {
+  const { supabase } = await requirePerfil(PERMISOS.catalogo);
+  await supabase.from("productos").update({ nivel: nivelValido(txt(fd, "nivel")) }).eq("id", txt(fd, "id"));
+  revalidatePath("/panel/catalogo");
 }
 
 export async function alternarProducto(fd: FormData) {
