@@ -53,7 +53,7 @@ export default async function Campana({
         <SimpleTitulo titulo={campana.nombre} volver={{ href: `/panel/colegios/${colegio.id}`, texto: colegio.nombre }} sub={`${alumnos?.length ?? 0} alumnos`} />
         {salones.size === 0 && <p className="simple-vacio">Todavía no hay alumnos en esta lista.</p>}
         {[...salones].map(([salon, lista]) => (
-          <section key={salon} className="simple">
+          <section key={salon} className="simple-dia">
             <h2 className="simple-sub">{salon} <small className="muted">· {lista.length}</small></h2>
             <SimpleLista vacio="" filas={lista.map((a) => ({ key: a.id, href: `/panel/alumnos/${a.id}`, titulo: `${a.apellidos}, ${a.nombres}`, sub: a.apoderado_nombre ?? undefined }))} />
           </section>

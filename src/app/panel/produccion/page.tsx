@@ -28,10 +28,12 @@ export default async function Produccion({
 }: {
   searchParams: Promise<{ campana?: string; vista?: string; ok?: string; error?: string }>;
 }) {
-  const { campana = "", vista = "tablero", ...aviso } = await searchParams;
+  const { campana = "", vista: pedida, ...aviso } = await searchParams;
   const { supabase, perfil } = await requirePerfil();
   const sede = filtroSede(perfil.preferencias.sede);
   const sencilla = perfil.preferencias.vista === "sencilla";
+  // En vista sencilla "Entregar fotos" abre directo la lista de entregas, no el tablero.
+  const vista = pedida ?? (sencilla ? "entregas" : "tablero");
 
   let qCamp = supabase
     .from("campanas")
