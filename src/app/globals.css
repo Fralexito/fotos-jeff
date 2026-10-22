@@ -848,13 +848,28 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
 }
 
 /* ---------------------------------------------------------------- Catálogo por nivel */
-.nivel-card[data-nivel="inicial"] { --n: #f59e0b; }
-.nivel-card[data-nivel="primaria"] { --n: #22a06b; }
-.nivel-card[data-nivel="secundaria"] { --n: #2b8fd6; }
-.nivel-card[data-nivel="superior"] { --n: #7c5cd6; }
-.nivel-card[data-nivel=""] { --n: #64748b; }
+.nivel-card[data-cat="promocion"] { --n: #2b8fd6; }
+.nivel-card[data-cat="graduacion"] { --n: #7c5cd6; }
+.nivel-card[data-cat="carnet"] { --n: #22a06b; }
+.nivel-card[data-cat="otro"] { --n: #64748b; }
+.table tr.subgrupo td { background: color-mix(in oklab, var(--n) 8%, var(--surface)); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); padding-top: 8px; padding-bottom: 8px; }
+.cat-form { display: flex; gap: 6px; flex-wrap: wrap; }
 .nivel-card { border-top: 3px solid var(--n); }
 .nivel-card .card-head h2 { display: flex; align-items: center; gap: 8px; }
 .nivel-punto { width: 10px; height: 10px; border-radius: 50%; background: var(--n); }
 .nivel-vacio { padding: 0 20px 18px; }
 .nivel-select { height: 32px; font-size: 13px; width: auto; min-width: 150px; }
+
+/* ---------------------------------------------------------------- Sedes */
+.sede-pick { position: relative; display: inline-flex; align-items: center; height: 40px; border: 1px solid var(--line-strong); border-radius: 99px; background: var(--surface); box-shadow: var(--shadow-sm); color: var(--ink); }
+.sede-pick .i { position: absolute; left: 12px; width: 16px; height: 16px; color: var(--brand); pointer-events: none; }
+.sede-pick select { appearance: none; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: inherit; height: 100%; padding: 0 30px 0 34px; cursor: pointer; border-radius: 99px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: right 15px center, right 10px center; background-size: 5px 5px; background-repeat: no-repeat; }
+.sede-pick select:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.sede-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; }
+.sede-badge .i { width: 12px; height: 12px; color: var(--brand); }
+@media (max-width: 720px) { .sede-pick select { padding-right: 22px; max-width: 120px; } }
+.sede-form { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.sedes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; padding: 0 20px 20px; }
+.sede-card { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px 16px; background: var(--surface-2); }
+.sede-card h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 15px; }
+.sede-card h3 .i { color: var(--brand); width: 16px; height: 16px; }

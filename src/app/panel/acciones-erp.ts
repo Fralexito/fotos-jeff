@@ -13,6 +13,12 @@ const num = (fd: FormData, k: string) => {
   return v === "" ? null : Number(v);
 };
 
+// Sede del formulario; si no viene, la que la persona tiene elegida arriba (o Nauta).
+const sedeDe = (fd: FormData, elegida: string) => {
+  const v = txt(fd, "sede") || elegida;
+  return v === "iquitos" ? "iquitos" : "nauta";
+};
+
 // Vuelve a la pantalla desde donde se envió el formulario, con un aviso.
 function volver(fd: FormData, defecto: string, aviso: Record<string, string>): never {
   const ruta = txt(fd, "volver");
@@ -187,6 +193,7 @@ export async function registrarMovimiento(fd: FormData) {
     concepto: txt(fd, "concepto") || txt(fd, "categoria") || "Sin detalle",
     monto,
     metodo: txt(fd, "metodo") || "efectivo",
+    sede: sedeDe(fd, perfil.preferencias.sede),
     registrado_por: perfil.id,
   });
   volver(fd, "/panel/caja", error ? { error: "No se pudo guardar." } : { ok: "Movimiento anotado." });
@@ -197,9 +204,10 @@ export async function cerrarCaja(fd: FormData) {
   const fecha = txt(fd, "fecha") || hoyLima();
   const contado = num(fd, "efectivo_contado");
   if (contado === null || contado < 0) volver(fd, "/panel/caja", { error: "Escribe cuánto efectivo hay en caja." });
-  const { efectivo } = await resumenCaja(supabase, fecha);
+  const sede = sedeDe(fd, perfil.preferencias.sede);
+  const { efectivo } = await resumenCaja(supabase, fecha, sede);
   const { error } = await supabase.from("cierres_caja").insert({
-    fecha, efectivo_esperado: efectivo, efectivo_contado: contado, notas: opc(fd, "notas"), cerrado_por: perfil.id,
+    fecha, sede, efectivo_esperado: efectivo, efectivo_contado: contado, notas: opc(fd, "notas"), cerrado_por: perfil.id,
   });
   if (error) volver(fd, "/panel/caja", { error: error.code === "23505" ? "Ese día ya tiene cierre." : "No se pudo cerrar la caja." });
   const dif = contado - efectivo;
@@ -249,7 +257,7 @@ export async function moverInventario(fd: FormData) {
     const { data: mat } = await supabase.from("materiales").select("nombre").eq("id", material_id).single();
     await supabase.from("movimientos_caja").insert({
       tipo: "egreso", categoria: "Materiales", concepto: `Compra: ${cantidad} × ${mat?.nombre ?? "material"}`,
-      monto: costo, metodo: txt(fd, "metodo") || "efectivo", registrado_por: perfil.id,
+      monto: costo, metodo: txt(fd, "metodo") || "efectivo", registrado_por: perfil.id, sede: sedeDe(fd, perfil.preferencias.sede),
     });
   }
   volver(fd, "/panel/inventario", { ok: motivo === "compra" ? "Compra registrada." : motivo === "uso" ? "Salida registrada." : "Stock ajustado." });

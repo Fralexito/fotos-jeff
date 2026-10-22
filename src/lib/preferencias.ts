@@ -25,12 +25,17 @@ export const OPCIONES = {
     { valor: "comoda", texto: "Cómoda" },
     { valor: "compacta", texto: "Compacta" },
   ],
+  sede: [
+    { valor: "todas", texto: "Todas las sedes" },
+    { valor: "nauta", texto: "Nauta" },
+    { valor: "iquitos", texto: "Iquitos" },
+  ],
 } as const;
 
 export type Clave = keyof typeof OPCIONES;
 export type Preferencias = { [K in Clave]: (typeof OPCIONES)[K][number]["valor"] };
 
-export const PREDETERMINADAS: Preferencias = { vista: "sencilla", color: "turquesa", tema: "claro", letra: "normal", densidad: "comoda" };
+export const PREDETERMINADAS: Preferencias = { vista: "sencilla", color: "turquesa", tema: "claro", letra: "normal", densidad: "comoda", sede: "todas" };
 
 // Toma lo guardado y descarta valores desconocidos.
 export function leerPreferencias(guardado: unknown): Preferencias {

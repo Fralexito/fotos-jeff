@@ -6,14 +6,16 @@ export type Deudor = {
 };
 
 // Pedidos con saldo pendiente, con los datos del alumno y del colegio, de mayor a menor deuda.
-export async function deudores(supabase: SupabaseClient): Promise<Deudor[]> {
-  const { data: saldos } = await supabase
+export async function deudores(supabase: SupabaseClient, sede: string | null = null): Promise<Deudor[]> {
+  let q = supabase
     .from("pedidos_saldo")
     .select("id, numero, total, pagado, saldo, estado")
     .neq("estado", "anulado")
     .gt("saldo", 0)
     .order("saldo", { ascending: false })
     .limit(1000);
+  if (sede) q = q.eq("sede", sede);
+  const { data: saldos } = await q;
   const ids = (saldos ?? []).map((s) => s.id);
   if (ids.length === 0) return [];
   const datos = new Map<string, { alumno: string; telefono: string | null; salon: string; colegio: string; campana: string }>();

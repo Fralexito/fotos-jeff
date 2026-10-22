@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import type { Preferencias } from "@/lib/preferencias";
+import { OPCIONES, type Preferencias } from "@/lib/preferencias";
 import { guardarPreferencias } from "./actions";
-import { Boxes, HandCoins, Handshake, ListTodo, Package, Plus, Receipt, School, Search, Settings } from "lucide-react";
+import { Boxes, HandCoins, Handshake, ListTodo, MapPin, Package, Plus, Receipt, School, Search, Settings } from "lucide-react";
 
 // Barra superior: búsqueda en todo el sistema (atajo "/"), menú Nuevo y acceso a Ajustes.
 export function Topbar({ cobros, catalogo, clientes, prefs }: { cobros: boolean; catalogo: boolean; clientes: boolean; prefs: Preferencias }) {
@@ -18,7 +18,15 @@ export function Topbar({ cobros, catalogo, clientes, prefs }: { cobros: boolean;
     const app = document.querySelector<HTMLElement>(".app");
     if (app) app.dataset.vista = nueva ? "sencilla" : "completa";
     start(async () => {
-      await guardarPreferencias({ ...prefs, vista: nueva ? "sencilla" : "completa" });
+      await guardarPreferencias({ ...prefs, sede, vista: nueva ? "sencilla" : "completa" });
+      router.refresh();
+    });
+  };
+  const [sede, setSede] = useState(prefs.sede);
+  const cambiarSede = (nueva: Preferencias["sede"]) => {
+    setSede(nueva);
+    start(async () => {
+      await guardarPreferencias({ ...prefs, vista: sencilla ? "sencilla" : "completa", sede: nueva });
       router.refresh();
     });
   };
@@ -72,6 +80,12 @@ export function Topbar({ cobros, catalogo, clientes, prefs }: { cobros: boolean;
         <kbd>/</kbd>
       </form>
       <div className="topactions">
+        <label className="sede-pick" title="Ver solo una sede">
+          <MapPin className="i" />
+          <select value={sede} onChange={(e) => cambiarSede(e.target.value as Preferencias["sede"])} aria-label="Sede">
+            {OPCIONES.sede.map((o) => <option key={o.valor} value={o.valor}>{o.texto}</option>)}
+          </select>
+        </label>
         <button type="button" className="switch" role="switch" aria-checked={sencilla} onClick={cambiarVista} title="Vista sencilla: solo lo esencial, con botones grandes">
           <span className="track"><span className="thumb" /></span>
           <span className="hide-sm">Vista sencilla</span>

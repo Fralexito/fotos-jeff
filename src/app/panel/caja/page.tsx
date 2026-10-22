@@ -5,21 +5,29 @@ import { resumenCaja } from "@/lib/caja";
 import { CATEGORIAS_GASTO, CATEGORIAS_INGRESO, S, hoyLima } from "@/lib/formato";
 import { Aviso } from "@/components/aviso";
 import { Modal } from "@/components/modal";
-import { Empty, PageHeader } from "@/components/ui";
+import { Empty, PageHeader, Tabs } from "@/components/ui";
+import { NOMBRE_SEDE, SEDES, filtroSede } from "@/lib/sedes";
 import { cerrarCaja, registrarMovimiento } from "../acciones-erp";
 
 const METODO: Record<string, string> = { efectivo: "Efectivo", yape: "Yape", plin: "Plin", transferencia: "Transferencia", tarjeta: "Tarjeta" };
 const hora = (iso: string) => new Intl.DateTimeFormat("es-PE", { hour: "numeric", minute: "2-digit", timeZone: "America/Lima" }).format(new Date(iso));
 const mover = (f: string, d: number) => new Date(new Date(f + "T12:00:00Z").getTime() + d * 86400000).toISOString().slice(0, 10);
 
-export default async function Caja({ searchParams }: { searchParams: Promise<{ fecha?: string; nuevo?: string; ok?: string; error?: string }> }) {
-  const { fecha: f, nuevo, ...aviso } = await searchParams;
-  const { supabase } = await requirePerfil(PERMISOS.caja);
+export default async function Caja({ searchParams }: { searchParams: Promise<{ fecha?: string; sede?: string; nuevo?: string; ok?: string; error?: string }> }) {
+  const { fecha: f, sede: s, nuevo, ...aviso } = await searchParams;
+  const { supabase, perfil } = await requirePerfil(PERMISOS.caja);
   const hoy = hoyLima();
   const fecha = f && /^\d{4}-\d{2}-\d{2}$/.test(f) ? f : hoy;
-  const r = await resumenCaja(supabase, fecha);
-  const { data: cierres } = await supabase.from("cierres_caja").select("fecha, efectivo_esperado, efectivo_contado, diferencia").order("fecha", { ascending: false }).limit(7);
-  const volver = `/panel/caja${fecha !== hoy ? `?fecha=${fecha}` : ""}`;
+  // Cada sede cuadra su propia caja: la de la URL, la elegida arriba o Nauta.
+  const sede = SEDES.some(([v]) => v === s) ? s! : filtroSede(perfil.preferencias.sede) ?? "nauta";
+  const r = await resumenCaja(supabase, fecha, sede);
+  const { data: cierres } = await supabase.from("cierres_caja").select("fecha, efectivo_esperado, efectivo_contado, diferencia").eq("sede", sede).order("fecha", { ascending: false }).limit(7);
+  const url = (cambios: { fecha?: string; sede?: string }) => {
+    const q = new URLSearchParams({ sede, ...(fecha !== hoy ? { fecha } : {}), ...cambios });
+    if (q.get("fecha") === hoy) q.delete("fecha");
+    return `/panel/caja?${q}`;
+  };
+  const volver = url({});
   const largo = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(fecha + "T12:00:00Z"));
   const titulo = largo.charAt(0).toUpperCase() + largo.slice(1);
 
@@ -36,6 +44,7 @@ export default async function Caja({ searchParams }: { searchParams: Promise<{ f
     <form action={registrarMovimiento} className="form">
       <input type="hidden" name="tipo" value={tipo} />
       <input type="hidden" name="fecha" value={fecha} />
+      <input type="hidden" name="sede" value={sede} />
       <input type="hidden" name="volver" value={volver} />
       <div className="fields">
         <label className="field">
@@ -57,14 +66,14 @@ export default async function Caja({ searchParams }: { searchParams: Promise<{ f
     <>
       <PageHeader
         modulo="caja"
-        title="Caja"
+        title={`Caja de ${NOMBRE_SEDE[sede]}`}
         subtitle={titulo}
         actions={
           <>
             <div className="daynav">
-              <Link className="icon-btn lg" href={`/panel/caja?fecha=${mover(fecha, -1)}`} aria-label="Día anterior"><ChevronLeft className="i" /></Link>
-              {fecha !== hoy && <Link className="btn ghost sm" href="/panel/caja">Hoy</Link>}
-              {fecha < hoy && <Link className="icon-btn lg" href={`/panel/caja?fecha=${mover(fecha, 1)}`} aria-label="Día siguiente"><ChevronRight className="i" /></Link>}
+              <Link className="icon-btn lg" href={url({ fecha: mover(fecha, -1) })} aria-label="Día anterior"><ChevronLeft className="i" /></Link>
+              {fecha !== hoy && <Link className="btn ghost sm" href={url({ fecha: hoy })}>Hoy</Link>}
+              {fecha < hoy && <Link className="icon-btn lg" href={url({ fecha: mover(fecha, 1) })} aria-label="Día siguiente"><ChevronRight className="i" /></Link>}
             </div>
             <Modal variant="secondary" label="Ingreso" title="Otro ingreso" icon={<Plus className="i" />}>{formMovimiento("ingreso")}</Modal>
             <Modal abrir={nuevo === "1"} label="Gasto" title="Nuevo gasto" icon={<Receipt className="i" />}>{formMovimiento("egreso")}</Modal>
@@ -72,6 +81,7 @@ export default async function Caja({ searchParams }: { searchParams: Promise<{ f
         }
       />
       <Aviso {...aviso} />
+      <Tabs items={SEDES.map(([v, t]) => ({ href: url({ sede: v }), label: `Sede ${t}`, active: v === sede }))} />
 
       <div className="kpis">
         <div className="kpi">
@@ -142,6 +152,7 @@ export default async function Caja({ searchParams }: { searchParams: Promise<{ f
               ) : (
                 <form action={cerrarCaja} className="form">
                   <input type="hidden" name="fecha" value={fecha} />
+                  <input type="hidden" name="sede" value={sede} />
                   <input type="hidden" name="volver" value={volver} />
                   <div className="expected">Debería haber <b>{S(r.efectivo)}</b> en efectivo</div>
                   <label className="field">Efectivo contado (S/)<input name="efectivo_contado" inputMode="decimal" required placeholder="0.00" /></label>
@@ -156,7 +167,7 @@ export default async function Caja({ searchParams }: { searchParams: Promise<{ f
               <div className="card-head"><h2>Últimos cierres</h2></div>
               <div className="list">
                 {(cierres ?? []).map((c) => (
-                  <Link className="item" key={c.fecha} href={`/panel/caja?fecha=${c.fecha}`}>
+                  <Link className="item" key={c.fecha} href={url({ fecha: c.fecha })}>
                     <div className="main"><div><div className="title">{new Intl.DateTimeFormat("es-PE", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(c.fecha + "T12:00:00Z"))}</div><div className="meta">Contado {S(c.efectivo_contado)}</div></div></div>
                     <div className="end">
                       <span className={`badge ${Number(c.diferencia) === 0 ? "b-good" : Number(c.diferencia) > 0 ? "b-info" : "b-bad"}`}>

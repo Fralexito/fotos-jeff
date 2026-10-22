@@ -34,6 +34,8 @@ export async function crearColegio(fd: FormData) {
       codigo: txt(fd, "codigo").toUpperCase().replace(/\s+/g, ""),
       nombre: txt(fd, "nombre"),
       ciudad: txt(fd, "ciudad") || "Nauta",
+      sede: txt(fd, "sede") === "iquitos" ? "iquitos" : "nauta",
+      zona: ["carretera", "rio"].includes(txt(fd, "zona")) ? txt(fd, "zona") : "ciudad",
       director: opc(fd, "director"),
       contacto_nombre: opc(fd, "contacto_nombre"),
       contacto_telefono: opc(fd, "contacto_telefono"),
@@ -42,6 +44,21 @@ export async function crearColegio(fd: FormData) {
     .single();
   if (error) volver("/panel/colegios", { error: error.code === "23505" ? "Ya existe un colegio con ese código." : error.message });
   redirect(`/panel/colegios/${data.id}`);
+}
+
+export async function cambiarSedeColegio(fd: FormData) {
+  const { supabase } = await requirePerfil();
+  const id = txt(fd, "id");
+  const { error } = await supabase
+    .from("colegios")
+    .update({
+      sede: txt(fd, "sede") === "iquitos" ? "iquitos" : "nauta",
+      zona: ["carretera", "rio"].includes(txt(fd, "zona")) ? txt(fd, "zona") : "ciudad",
+      ciudad: txt(fd, "ciudad") || "Nauta",
+    })
+    .eq("id", id);
+  revalidatePath("/panel", "layout");
+  volver(`/panel/colegios/${id}`, error ? { error: "No se pudo guardar." } : { ok: "Ubicación guardada." });
 }
 
 export async function crearCampana(fd: FormData) {
@@ -200,7 +217,8 @@ export async function crearProducto(fd: FormData) {
     descripcion: opc(fd, "descripcion"),
     precio: Number(txt(fd, "precio").replace(",", ".")),
     es_combo: fd.get("es_combo") === "on",
-    nivel: nivelValido(txt(fd, "nivel")),
+    categoria: categoriaValida(txt(fd, "categoria")),
+    nivel: categoriaValida(txt(fd, "categoria")) === "promocion" ? nivelValido(txt(fd, "nivel")) : null,
   });
   if (error) volver("/panel/catalogo", { error: error.code === "23505" ? "Ya existe un producto con ese código." : error.message });
   revalidatePath("/panel/catalogo");
@@ -209,9 +227,16 @@ export async function crearProducto(fd: FormData) {
 
 const nivelValido = (v: string) => (["inicial", "primaria", "secundaria", "superior"].includes(v) ? v : null);
 
-export async function cambiarNivelProducto(fd: FormData) {
+const categoriaValida = (v: string) => (["promocion", "graduacion", "carnet"].includes(v) ? v : "otro");
+
+// Categoría del producto; el nivel solo se guarda en las promociones.
+export async function cambiarCategoriaProducto(fd: FormData) {
   const { supabase } = await requirePerfil(PERMISOS.catalogo);
-  await supabase.from("productos").update({ nivel: nivelValido(txt(fd, "nivel")) }).eq("id", txt(fd, "id"));
+  const categoria = categoriaValida(txt(fd, "categoria"));
+  await supabase
+    .from("productos")
+    .update({ categoria, nivel: categoria === "promocion" ? nivelValido(txt(fd, "nivel")) : null })
+    .eq("id", txt(fd, "id"));
   revalidatePath("/panel/catalogo");
 }
 
@@ -242,4 +267,14 @@ export async function guardarMiPerfil(fd: FormData) {
   if (error) volver("/panel/ajustes", { error: "No se pudo guardar tu perfil." });
   revalidatePath("/panel", "layout");
   volver("/panel/ajustes", { ok: "Perfil guardado." });
+}
+
+export async function guardarSede(fd: FormData) {
+  const { supabase } = await requirePerfil(["dueno"]);
+  const { error } = await supabase
+    .from("sedes")
+    .update({ encargado: opc(fd, "encargado"), telefono: opc(fd, "telefono"), direccion: opc(fd, "direccion") })
+    .eq("id", txt(fd, "id"));
+  revalidatePath("/panel/ajustes");
+  volver("/panel/ajustes", error ? { error: "No se pudo guardar la sede." } : { ok: "Sede guardada." });
 }

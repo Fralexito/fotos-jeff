@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronRight, Factory, PackageCheck, Truck } from "lucide-react";
+import { filtroSede } from "@/lib/sedes";
 import { requirePerfil } from "@/lib/auth";
 import { ESTADO_PEDIDO, S, whatsapp } from "@/lib/formato";
 import { Aviso } from "@/components/aviso";
@@ -28,13 +29,16 @@ export default async function Produccion({
   searchParams: Promise<{ campana?: string; vista?: string; ok?: string; error?: string }>;
 }) {
   const { campana = "", vista = "tablero", ...aviso } = await searchParams;
-  const { supabase } = await requirePerfil();
+  const { supabase, perfil } = await requirePerfil();
+  const sede = filtroSede(perfil.preferencias.sede);
 
-  const { data: campanas } = await supabase
+  let qCamp = supabase
     .from("campanas")
-    .select("id, nombre, colegios(nombre)")
+    .select("id, nombre, colegios!inner(nombre, sede)")
     .neq("estado", "cerrada")
     .order("fecha_captura", { ascending: true, nullsFirst: false });
+  if (sede) qCamp = qCamp.eq("colegios.sede", sede);
+  const { data: campanas } = await qCamp;
 
   let q = supabase
     .from("pedidos")
@@ -43,6 +47,7 @@ export default async function Produccion({
     .order("numero", { ascending: true })
     .limit(600);
   if (campana) q = q.eq("campana_id", campana);
+  if (sede) q = q.eq("sede", sede);
   const { data } = await q.returns<Pedido[]>();
   const pedidos = data ?? [];
 

@@ -13,24 +13,25 @@ export async function todas<T>(pagina: (desde: number, hasta: number) => Promise
 export type AlumnoFila = {
   id: string; codigo: string; nombres: string; apellidos: string; grado: string | null; seccion: string | null;
   dni: string | null; apoderado: string | null; telefono: string | null; creado: string;
-  campanaId: string; campana: string; anio: number; tipo: string; colegioId: string; colegio: string;
+  campanaId: string; campana: string; anio: number; tipo: string; colegioId: string; colegio: string; sede: string;
   pedidos: number; estado: string | null; total: number; pagado: number; saldo: number;
 };
 
 type Fila = {
   id: string; codigo: string; nombres: string; apellidos: string; grado: string | null; seccion: string | null; dni: string | null;
   apoderado_nombre: string | null; apoderado_telefono: string | null; creado_en: string; campana_id: string;
-  campanas: { nombre: string; anio: number; tipo: string; colegios: { id: string; nombre: string } | null } | null;
+  campanas: { nombre: string; anio: number; tipo: string; colegios: { id: string; nombre: string; sede: string } | null } | null;
 };
 type Saldo = { alumno_id: string; estado: string; total: number; pagado: number; saldo: number; numero: number };
 
 // Todos los alumnos con su colegio, campaña y lo que compraron (sin contar pedidos anulados).
-export async function alumnosConPedidos(supabase: SupabaseClient): Promise<AlumnoFila[]> {
+// Con sede, solo los de los colegios de esa sede.
+export async function alumnosConPedidos(supabase: SupabaseClient, sede: string | null = null): Promise<AlumnoFila[]> {
   const [alumnos, saldos] = await Promise.all([
     todas<Fila>((a, b) =>
       supabase
         .from("alumnos")
-        .select("id, codigo, nombres, apellidos, grado, seccion, dni, apoderado_nombre, apoderado_telefono, creado_en, campana_id, campanas(nombre, anio, tipo, colegios(id, nombre))")
+        .select("id, codigo, nombres, apellidos, grado, seccion, dni, apoderado_nombre, apoderado_telefono, creado_en, campana_id, campanas(nombre, anio, tipo, colegios(id, nombre, sede))")
         .order("id")
         .range(a, b)
         .returns<Fila[]>(),
@@ -42,14 +43,14 @@ export async function alumnosConPedidos(supabase: SupabaseClient): Promise<Alumn
   const porAlumno = new Map<string, Saldo[]>();
   for (const s of saldos) porAlumno.set(s.alumno_id, [...(porAlumno.get(s.alumno_id) ?? []), s]);
 
-  return alumnos.map((a) => {
+  return alumnos.filter((a) => !sede || (a.campanas?.colegios?.sede ?? "nauta") === sede).map((a) => {
     const ps = porAlumno.get(a.id) ?? [];
     const c = a.campanas;
     return {
       id: a.id, codigo: a.codigo, nombres: a.nombres, apellidos: a.apellidos, grado: a.grado, seccion: a.seccion, dni: a.dni,
       apoderado: a.apoderado_nombre, telefono: a.apoderado_telefono, creado: a.creado_en,
       campanaId: a.campana_id, campana: c?.nombre ?? "", anio: c?.anio ?? 0, tipo: c?.tipo ?? "",
-      colegioId: c?.colegios?.id ?? "", colegio: c?.colegios?.nombre ?? "",
+      colegioId: c?.colegios?.id ?? "", colegio: c?.colegios?.nombre ?? "", sede: c?.colegios?.sede ?? "nauta",
       pedidos: ps.length,
       estado: ps.at(-1)?.estado ?? null,
       total: ps.reduce((s, p) => s + Number(p.total), 0),
