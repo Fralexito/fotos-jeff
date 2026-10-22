@@ -10,7 +10,8 @@ REPO = os.path.dirname(ESTUDIO)
 
 datas = [(os.path.join(REPO, "pipeline", "pipeline_fotos.py"), "pipeline"),
          (os.path.join(ESTUDIO, "motor_servidor.py"), "."),
-         (os.path.join(AQUI, "icono.png"), "empaque")]
+         (os.path.join(AQUI, "icono.png"), "empaque"),
+         (os.path.join(REPO, "estudio", "fj_estudio", "ui", "fuentes"), "fj_estudio/ui/fuentes")]
 binaries = []
 hidden = ["pipeline_fotos", "PIL.ImageCms", "openpyxl", "onnxruntime", "scipy._cyutility"]
 hidden += collect_submodules("keyring.backends") + collect_submodules("fj_estudio")

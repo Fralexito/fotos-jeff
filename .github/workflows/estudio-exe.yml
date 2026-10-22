@@ -4,6 +4,8 @@ on:
   push:
     branches: [main, estudio-pc]
     paths: ["estudio/**", "pipeline/pipeline_fotos.py", ".github/workflows/estudio-exe.yml"]
+  pull_request:
+    paths: ["estudio/**", "pipeline/pipeline_fotos.py", ".github/workflows/estudio-exe.yml"]
   workflow_dispatch:
 
 permissions:
@@ -18,7 +20,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 60
     env:
-      VERSION: "0.1.${{ github.run_number }}"
+      VERSION: "0.2.${{ github.run_number }}"
     steps:
       - uses: actions/checkout@v4
 
@@ -68,6 +70,7 @@ jobs:
           retention-days: 30
 
       - name: Publicar descarga
+        if: github.event_name != 'pull_request'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}

@@ -80,3 +80,106 @@ QFrame#tarjeta {{ background: {C['panel']}; border: 1px solid {C['borde']}; bord
 QFrame#aviso_ia {{ background: {C['ia_bg']}; border-radius: 10px; }}
 QFrame#aviso_ia QLabel {{ color: {C['ia_txt']}; }}
 """
+
+
+# ------------------------------------------------------------------ diseño simple (v0.2)
+# Claro y cálido para colegios y salones; oscuro solo en la galería (las fotos se ven mejor).
+FUENTE = "Plus Jakarta Sans"
+
+CL = dict(
+    fondo="#FBF8F2", tarjeta="#FFFFFF", borde="#EDE5D6", borde2="#E3D8C4", tinta="#1C1A17", suave="#6B6457",
+    tenue="#8A7F6C", oro="#C9962B", oro_claro="#E8C46A", oro_txt="#7A5410", oro_bg="#FBEFD2",
+    verde="#3FA36B", verde_bg="#E3F3EA", verde_txt="#1F6B43", gris_bg="#F1ECE3", pista="#EFE7D8",
+    rojo="#D9583F", rojo_bg="#FBE3DD", rojo_txt="#8E2E1C",
+)
+OSC = dict(fondo="#121212", panel="#1A1A1A", elev="#232323", elev2="#2C2C2C", borde="#2E2E2E", texto="#F2EEE6",
+           suave="#CFC9BD", tenue="#9A958B", oro="#E8C46A")
+
+# Colores de las tarjetas de colegio (fondo, tinta): se reparten en orden.
+PALETAS_COLEGIO = [("#FCEFD2", "#9A6A0E"), ("#DDEBFA", "#1F5FA8"), ("#DDF2E6", "#23784A"), ("#F6E0EA", "#A33A68"),
+                   ("#EAE4FA", "#5B43B0"), ("#FDE5D6", "#A2481C")]
+
+PUNTO_ESTADO = {"lista": "#3FA36B", "aprobada": "#3FA36B", "revisar": "#E8C46A", "problema": "#E5674E",
+                "nueva": "#6B6B6B", "editando": "#5CC3D4", "sin_foto": "#3A3A3A", "rechazada": "#E5674E"}
+TEXTO_ESTADO = {"lista": "Lista para aprobar", "aprobada": "Aprobada", "revisar": "Mírala antes de aprobar",
+                "problema": "Tiene un problema", "nueva": "Sin editar", "editando": "Editando…",
+                "sin_foto": "Sin foto", "rechazada": "Rechazada"}
+
+
+def cargar_fuentes():
+    """Plus Jakarta Sans viene con el programa (licencia OFL en ui/fuentes)."""
+    import os
+    import sys
+
+    from PySide6.QtGui import QFontDatabase
+    aqui = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+                        "fj_estudio", "ui", "fuentes") if getattr(sys, "frozen", False) else \
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "fuentes")
+    for f in ("PlusJakartaSans.ttf",):
+        ruta = os.path.join(aqui, f)
+        if os.path.exists(ruta):
+            QFontDatabase.addApplicationFont(ruta)
+
+
+QSS_CLARO = f"""
+* {{ font-family: "{FUENTE}", "Segoe UI", sans-serif; font-size: 15px; color: {CL['tinta']}; }}
+QMainWindow, QWidget#raiz {{ background: {CL['fondo']}; }}
+QScrollArea {{ background: transparent; border: 0; }}
+QScrollArea > QWidget > QWidget {{ background: transparent; }}
+QLabel {{ background: transparent; }}
+QLabel#h1 {{ font-size: 40px; font-weight: 800; }}
+QLabel#h2 {{ font-size: 22px; font-weight: 800; }}
+QLabel#marca {{ font-size: 15px; font-weight: 800; letter-spacing: 1px; }}
+QLabel#suave {{ color: {CL['suave']}; }}
+QLabel#tenue {{ color: {CL['tenue']}; font-weight: 600; }}
+QLabel#etiqueta {{ color: {CL['oro']}; font-size: 13px; font-weight: 800; letter-spacing: 2px; }}
+QPushButton {{ background: {CL['tarjeta']}; border: 1px solid {CL['borde2']}; border-radius: 16px; padding: 12px 20px;
+    font-weight: 700; }}
+QPushButton:hover {{ border-color: {CL['oro']}; }}
+QPushButton:disabled {{ color: #B3AB9C; border-color: {CL['borde']}; }}
+QPushButton#oscuro {{ background: {CL['tinta']}; color: #FFFFFF; border: 0; border-radius: 24px; padding: 14px 24px; }}
+QPushButton#oscuro:hover {{ background: #33302A; }}
+QPushButton#pildora {{ border-radius: 22px; padding: 10px 18px; }}
+QPushButton#redondo {{ border-radius: 22px; padding: 0; min-width: 44px; max-width: 44px; min-height: 44px; max-height: 44px; }}
+QPushButton#fantasma {{ background: transparent; border: 0; color: {CL['suave']}; padding: 10px 14px; }}
+QPushButton#fantasma:hover {{ color: {CL['tinta']}; }}
+QLineEdit {{ background: {CL['tarjeta']}; border: 1px solid #DCD3C3; border-radius: 12px; padding: 8px 12px;
+    selection-background-color: {CL['oro_claro']}; }}
+QLineEdit#buscar {{ border-radius: 26px; padding: 14px 20px 14px 12px; font-size: 16px; }}
+QLineEdit:focus {{ border: 2px solid {CL['oro']}; }}
+QScrollBar:vertical {{ background: transparent; width: 10px; margin: 4px; }}
+QScrollBar::handle:vertical {{ background: #D9CFBE; border-radius: 5px; min-height: 40px; }}
+QScrollBar::add-line, QScrollBar::sub-line {{ width: 0; height: 0; }}
+QScrollBar:horizontal {{ height: 0; }}
+QToolTip {{ background: {CL['tinta']}; color: #FFFFFF; border: 0; padding: 6px 10px; border-radius: 8px; }}
+QMessageBox, QDialog {{ background: {CL['fondo']}; }}
+QMessageBox QLabel {{ font-size: 15px; }}
+QMessageBox QPushButton, QDialog QPushButton {{ min-width: 90px; }}
+QComboBox, QSpinBox, QDoubleSpinBox {{ background: {CL['tarjeta']}; border: 1px solid #DCD3C3; border-radius: 12px; padding: 8px 12px; }}
+QCheckBox {{ spacing: 10px; }}
+QMenu {{ background: {CL['tarjeta']}; border: 1px solid {CL['borde']}; border-radius: 12px; padding: 6px; }}
+QMenu::item {{ padding: 10px 18px; border-radius: 8px; }}
+QMenu::item:selected {{ background: {CL['gris_bg']}; color: {CL['tinta']}; }}
+"""
+
+QSS_GALERIA = f"""
+QWidget#galeria, QWidget#galeria QWidget {{ color: {OSC['texto']}; }}
+QWidget#galeria {{ background: {OSC['fondo']}; }}
+QWidget#galeria QLabel#h1 {{ color: {OSC['texto']}; font-size: 36px; font-weight: 800; }}
+QWidget#galeria QLabel#tenue {{ color: {OSC['tenue']}; }}
+QWidget#galeria QLabel#suave {{ color: {OSC['suave']}; }}
+QWidget#galeria QPushButton {{ background: {OSC['elev2']}; color: {OSC['texto']}; border: 0; border-radius: 16px;
+    padding: 12px 20px; font-weight: 700; }}
+QWidget#galeria QPushButton:hover {{ background: #383838; }}
+QWidget#galeria QPushButton:disabled {{ color: #6E6A62; background: {OSC['elev']}; }}
+QWidget#galeria QPushButton#filtro {{ background: transparent; color: {OSC['suave']}; border-radius: 18px; padding: 9px 18px; }}
+QWidget#galeria QPushButton#filtro:checked {{ background: {OSC['texto']}; color: {OSC['fondo']}; }}
+QWidget#galeria QPushButton#borde {{ background: transparent; border: 1px solid #3A3A3A; }}
+QWidget#galeria QPushButton#borde:hover {{ border-color: {OSC['oro']}; }}
+QWidget#galeria QFrame#filtros {{ background: {OSC['panel']}; border-radius: 24px; }}
+QWidget#galeria QFrame#lateral {{ background: {OSC['panel']}; border-left: 1px solid {OSC['borde']}; }}
+QWidget#galeria QFrame#flotante {{ background: {OSC['elev']}; border: 1px solid #3A3A3A; border-radius: 34px; }}
+QWidget#galeria QFrame#flotante QPushButton {{ border-radius: 24px; padding: 13px 22px; }}
+QWidget#galeria QListView {{ background: transparent; border: 0; outline: 0; }}
+QWidget#galeria QScrollBar::handle:vertical {{ background: #3A3A3A; }}
+"""
