@@ -1,4 +1,4 @@
-/* Sistema visual del panel Fotos Jeff: neutro y sobrio, verde de marca para acciones y semáforo para estados. */
+/* Sistema visual del panel Fotos Jefferson: neutro y sobrio, verde de marca para acciones y semáforo para estados. */
 /* Color de marca por persona (Ajustes): cada tema solo define --brand y --accent; el resto se deriva. */
 :root, .app, .auth {
   --brand: #2a97a8;
@@ -846,3 +846,15 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--side-2) 45%, trans
   .fotos-top { grid-template-columns: 1fr; }
   .fotos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
+
+/* ---------------------------------------------------------------- Catálogo por nivel */
+.nivel-card[data-nivel="inicial"] { --n: #f59e0b; }
+.nivel-card[data-nivel="primaria"] { --n: #22a06b; }
+.nivel-card[data-nivel="secundaria"] { --n: #2b8fd6; }
+.nivel-card[data-nivel="superior"] { --n: #7c5cd6; }
+.nivel-card[data-nivel=""] { --n: #64748b; }
+.nivel-card { border-top: 3px solid var(--n); }
+.nivel-card .card-head h2 { display: flex; align-items: center; gap: 8px; }
+.nivel-punto { width: 10px; height: 10px; border-radius: 50%; background: var(--n); }
+.nivel-vacio { padding: 0 20px 18px; }
+.nivel-select { height: 32px; font-size: 13px; width: auto; min-width: 150px; }

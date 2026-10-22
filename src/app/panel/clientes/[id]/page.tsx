@@ -35,7 +35,7 @@ export default async function OportunidadPage({
         subtitle={<><span className={`badge ${etapaClase}`}>{etapaTxt}</span> · {TIPO_CAMPANA[o.tipo]}{o.monto_estimado ? ` · ${S(o.monto_estimado)} estimado` : ""}</>}
         actions={
           <>
-            <WhatsApp sm={false} href={whatsapp(o.telefono, `Hola ${o.contacto_nombre ?? ""}, le saluda Fotos Jeff.`)} />
+            <WhatsApp sm={false} href={whatsapp(o.telefono, `Hola ${o.contacto_nombre ?? ""}, le saluda Fotos Jefferson.`)} />
             {o.colegios ? (
               <Link className="btn secondary" href={`/panel/colegios/${o.colegios.id}`}><School className="i" /> Ver colegio</Link>
             ) : (

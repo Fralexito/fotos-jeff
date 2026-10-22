@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], display: "swap", variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Fotos Jeff",
+  title: "Fotos Jefferson",
   description: "Fotografía escolar en Nauta e Iquitos: promociones, graduaciones y carnets.",
 };
 

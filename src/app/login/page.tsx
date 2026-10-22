@@ -14,7 +14,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
       <section className="brand-side">
         <div className="logo" style={{ padding: 0 }}>
           <span className="mark"><Camera /></span>
-          <span><b>Fotos Jeff</b><small>Estudio fotográfico · Nauta</small></span>
+          <span><b>Fotos Jefferson</b><small>Estudio fotográfico · Nauta</small></span>
         </div>
         <div>
           <h2>Todo el estudio en un solo lugar.</h2>

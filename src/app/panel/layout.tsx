@@ -60,7 +60,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         <Link href="/panel" className="logo">
           <span className="mark"><Camera /></span>
           <span>
-            <b>Fotos Jeff</b>
+            <b>Fotos Jefferson</b>
             <small>Estudio fotográfico · Nauta</small>
           </span>
         </Link>

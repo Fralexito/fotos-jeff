@@ -81,3 +81,6 @@ export const TIPO_ACTIVIDAD: Record<string, string> = {
 
 export const CATEGORIAS_GASTO = ["Materiales", "Impresión", "Transporte", "Sueldos", "Alquiler", "Servicios", "Equipos", "Otros"];
 export const CATEGORIAS_INGRESO = ["Fondo inicial", "Venta suelta", "Otros"];
+
+// Niveles del catálogo, en el orden en que se muestran. Sin nivel = sirve para todos.
+export const NIVELES: [string, string][] = [["inicial", "Inicial"], ["primaria", "Primaria"], ["secundaria", "Secundaria"], ["superior", "Superior"]];

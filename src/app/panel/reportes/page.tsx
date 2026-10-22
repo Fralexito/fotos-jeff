@@ -162,7 +162,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
                     <td className="num">
                       <WhatsApp
                         label="Recordar"
-                        href={whatsapp(d.telefono, `Hola, le saluda Fotos Jeff. Le recordamos que el pedido N.º ${d.numero} de ${d.alumno.split(", ")[1] ?? d.alumno} tiene un saldo de ${S(d.saldo)}. Puede pagar por Yape o Plin. ¡Gracias!`)}
+                        href={whatsapp(d.telefono, `Hola, le saluda Fotos Jefferson. Le recordamos que el pedido N.º ${d.numero} de ${d.alumno.split(", ")[1] ?? d.alumno} tiene un saldo de ${S(d.saldo)}. Puede pagar por Yape o Plin. ¡Gracias!`)}
                       />
                     </td>
                   </tr>
